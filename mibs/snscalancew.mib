@@ -1,0 +1,4932 @@
+-- ----------------------------------------------------------------------
+-- snScalanceW.mib
+-- Siemens  SIMATIC NET
+-- SCALANCE W788-2PRO/SCALANCE W788-1PRO
+-- SCALANCE W788-2RR/SCALANCE W788-1RR
+-- SCALANCE W786-3PRO/SCALANCE W786-2PRO/SCALANCE W786-1PRO
+-- SCALANCE W786-2RR
+-- SCALANCE W784-1RR/SCALANCE W784-1
+-- SCALANCE W744-1PRO/SCALANCE W746-1PRO/SCALANCE W747-1RR
+-- SCALANCE W744-1/SCALANCE W746-1/SCALANCE W747-1            Private MIB
+-- Copyright (c) 2004-2008 Siemens AG
+-- ----------------------------------------------------------------------
+--
+-- MIB Module :   SN-SCALANCEW-PRIV-MIB
+--
+-- Revision   :   V3.0.1
+-- Date       :   2009/03/03
+--
+-- ----------------------------------------------------------------------
+
+SN-SCALANCEW-PRIV-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    enterprises,IpAddress,
+    TimeTicks,Counter FROM RFC1155-SMI
+
+--    ifIndex FROM RFC1213-MIB
+
+TRAP-TYPE FROM RFC-1215
+
+    OBJECT-TYPE FROM RFC-1212;
+
+siemensAD             OBJECT IDENTIFIER ::= { enterprises 4196 }
+adProductMibs         OBJECT IDENTIFIER ::= { siemensAD 1 }
+simaticNet            OBJECT IDENTIFIER ::= { adProductMibs 1 }
+iHub                  OBJECT IDENTIFIER ::= { simaticNet 1 }
+iScalanceW            OBJECT IDENTIFIER ::= { simaticNet 4 }
+
+-- -------------------------------------------------------------
+-- SIMATIC NET SCALANCE W Products
+-- These objects are used as sysObjectID of the products.
+-- -------------------------------------------------------------
+
+snScalanceW788-2PRO   OBJECT IDENTIFIER ::= { iScalanceW  1 }
+snScalanceW788-1PRO   OBJECT IDENTIFIER ::= { iScalanceW  2 }
+snScalanceW744-1PRO   OBJECT IDENTIFIER ::= { iScalanceW  3 }
+snScalanceW788-2RR    OBJECT IDENTIFIER ::= { iScalanceW  4 }
+snScalanceW788-1RR    OBJECT IDENTIFIER ::= { iScalanceW  5 }
+snScalanceW747-1RR    OBJECT IDENTIFIER ::= { iScalanceW  6 }
+snScalanceW746-1PRO   OBJECT IDENTIFIER ::= { iScalanceW  7 }
+snScalanceW786-3PRO   OBJECT IDENTIFIER ::= { iScalanceW  9 }
+snScalanceW786-2PRO   OBJECT IDENTIFIER ::= { iScalanceW 10 }
+snScalanceW786-1PRO   OBJECT IDENTIFIER ::= { iScalanceW 11 }
+snScalanceW784-1RR    OBJECT IDENTIFIER ::= { iScalanceW 12 }
+snScalanceW784-1      OBJECT IDENTIFIER ::= { iScalanceW 13 }
+snScalanceW747-1      OBJECT IDENTIFIER ::= { iScalanceW 14 }
+snScalanceW746-1      OBJECT IDENTIFIER ::= { iScalanceW 15 }
+snScalanceW744-1      OBJECT IDENTIFIER ::= { iScalanceW 16 }
+snScalanceW786-2RR    OBJECT IDENTIFIER ::= { iScalanceW 17 }
+
+-- ************************************************************
+-- SIMATIC NET SCALANCE W Private MIB
+-- ************************************************************
+
+-- ------------------------------------------------------------
+-- SIMATIC NET SCALANCE W Object Identifier Definition
+-- ------------------------------------------------------------
+iScalanceWMib         OBJECT IDENTIFIER ::= { iScalanceW 100 }
+
+
+-- -------------------------------------------------------------
+-- Groups in SN-PRIVATE-MIB
+-- -------------------------------------------------------------
+-- --------------------------------------------------------------
+-- textual conventions
+-- --------------------------------------------------------------
+
+MacAddress ::= OCTET STRING (SIZE (6))    -- a 6 octet address
+-- in the "canonical" order defined by IEEE 802.1a, i.e., as if
+-- it were transmitted least significant bit first, even though
+-- 802.5 (in contrast to other n802.x protocols) requires MAC
+-- addresses to be transmitted most significant bit first.
+--
+-- 16-bit addresses, if needed, are represented by setting
+-- their upper 4 octets to all 0's, i.e., AAFF would be
+-- represented as 00000000AAFF.
+
+-- -------------------------------------------------------------
+-- SIMATIC NET SCALANCE W Objects
+-- -------------------------------------------------------------
+snCommon             OBJECT IDENTIFIER ::= { iScalanceWMib 1 }
+snProductSpecific    OBJECT IDENTIFIER ::= { iScalanceWMib 2 }
+
+-- -------------------------------------------------------------
+-- SIMATIC NET SCALANCE W Common Objects
+-- -------------------------------------------------------------
+snDownload           OBJECT IDENTIFIER ::= { snCommon 5  }
+snNvLog              OBJECT IDENTIFIER ::= { snCommon 6  }
+snTrapInfo           OBJECT IDENTIFIER ::= { snCommon 7  }
+snGen                OBJECT IDENTIFIER ::= { snCommon 8  }
+snTcpip              OBJECT IDENTIFIER ::= { snCommon 10 }
+snCPlug              OBJECT IDENTIFIER ::= { snCommon 11 }
+snPnio               OBJECT IDENTIFIER ::= { snCommon 13 }
+
+-- -------------------------------------------------------------
+-- SIMATIC NET SCALANCE W Product Specific Objects
+-- -------------------------------------------------------------
+snScalanceWCommon    OBJECT IDENTIFIER ::= { snProductSpecific 1  }
+snScalanceWFilter    OBJECT IDENTIFIER ::= { snProductSpecific 4  }
+snScalanceWStats     OBJECT IDENTIFIER ::= { snProductSpecific 5  }
+snScalanceWDevices   OBJECT IDENTIFIER ::= { snProductSpecific 6  }
+snScalanceWScan      OBJECT IDENTIFIER ::= { snProductSpecific 7  }
+snScalanceWAcl       OBJECT IDENTIFIER ::= { snProductSpecific 8  }
+snScalanceWAccess    OBJECT IDENTIFIER ::= { snProductSpecific 9  }
+snScalanceWVirtualAp OBJECT IDENTIFIER ::= { snProductSpecific 10 }
+snScalanceWiFeatures OBJECT IDENTIFIER ::= { snProductSpecific 11 }
+
+-- -------------------------------------------------------------
+-- SIMATIC NET SCALANCE W I-Features Objects
+-- -------------------------------------------------------------
+snScalanceWiPCF      OBJECT IDENTIFIER ::= { snScalanceWiFeatures 1 }
+
+-- --------------------------------------------------------------
+-- AD-DOWNLOAD-MIB:
+-- --------------------------------------------------------------
+
+DisplayString ::=
+OCTET STRING
+-- This data type is used to model textual information taken
+-- from the NVT ASCII character set.  By convention, objects
+-- with this syntax are declared as having
+--
+--      SIZE (0..255)
+
+--
+-- Download Sub-Groups
+--
+snDownloadParams   OBJECT IDENTIFIER ::= {snDownload 1}
+
+-- --------------------------------------------------------------
+-- SIMATIC NET SCALANCE W Download Group
+-- This group contains all the download related parameters.
+-- --------------------------------------------------------------
+
+snDownloadParamsTftpServerHostName OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..64))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "IP address (x.y.z.w) otherwise name of the TFTP server host, if the
+        name server is present."
+    DEFVAL  {""}
+::= { snDownloadParams 2 }
+
+
+snDownloadFirmwareFile       OBJECT-TYPE
+    SYNTAX  DisplayString (SIZE(0..32))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Full path name of firmware file to be saved to the TFTP
+        server host. Note that the file name must have the appropriate syntax
+        for the TFTP server host.
+        E.g., if the TFTP server host is a UNIX machine, the full file name
+        might be /tftp/Scalance.lad, or if the TFTP server host is a Windows
+        machine, the full file name might be C:\tftp\Scalance.lad."
+    DEFVAL  {"Not Defined Yet"}
+::= { snDownloadParams 3 }
+
+
+snDownloadFirmwareControl    OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        start-load(2),
+        start-save(3)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Setting this object to start-load(2) causes the
+        system to start a downloading process from TFTP server.
+        Setting this object to start-save(3) causes the system to
+        start an uploading process to TFTP server."
+::= { snDownloadParams 4 }
+
+snDownloadParamsStatus OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        download-in-progress(2),
+        download-inactive(3)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The status of the TFTP client."
+    DEFVAL  {download-inactive}
+::= { snDownloadParams 5 }
+
+snDownloadParamsError  OBJECT-TYPE
+    SYNTAX  DisplayString
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The error status of the TFTP client."
+    DEFVAL  {""}
+::= { snDownloadParams 7 }
+
+snDownloadEventLogTableFile       OBJECT-TYPE
+    SYNTAX  DisplayString (SIZE(0..32))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Full path name of file to be saved to the TFTP
+        server host. Note that the file name must have the appropriate syntax
+        for the TFTP server host.
+        E.g., if the TFTP server host is a UNIX machine, the full file name
+        might be  /tftp/name.txt, or if the TFTP server host is a Windows
+        machine, the full file name might be  C:\tftp\name.txt."
+    DEFVAL  {"Not Defined Yet"}
+::= { snDownloadParams 9 }
+
+
+snDownloadEventLogTableControl    OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        start-save(3)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Setting this object to start-save(3) causes the
+        system to start an uploading process to TFTP server."
+::= { snDownloadParams 10 }
+
+snDownloadConfigFile       OBJECT-TYPE
+    SYNTAX  DisplayString (SIZE(0..32))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Full path name of config file to be downloaded from the TFTP
+        server host. Note that the file name must have the appropriate syntax
+        for the TFTP server host.
+        E.g., if the TFTP server host is a UNIX machine, the full file name
+        might be  /tftpboot/Config.cfg, or if the TFTP server host is a Windows
+        machine, the full file name might be  C:\tftpboot\Config.cfg."
+    DEFVAL  {"Not Defined Yet"}
+::= { snDownloadParams 11 }
+
+snDownloadConfigControl    OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        start-load(2),
+        start-save(3)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Setting this object to start-load(2) causes the
+        system to start a downloading process from TFTP server.
+        Setting this object to start-save(3) causes the system to
+        start an uploading process to TFTP server."
+::= { snDownloadParams 12 }
+
+
+
+snDownloadParamsTftpServerHostPort OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS read-write
+    STATUS    mandatory
+    DESCRIPTION
+        "Port of the TFTP server host. Dafault value is 69."
+    DEFVAL { 69 }
+::= {  snDownloadParams 13 }
+
+snDownloadUserCertificateFile       OBJECT-TYPE
+    SYNTAX  DisplayString (SIZE(0..32))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Full path name of user certificate file (for Dot1x) to be saved to the TFTP
+        server host. Note that the file name must have the appropriate syntax
+        for the TFTP server host.
+        E.g., if the TFTP server host is a UNIX machine, the full file name
+        might be  /tftp/user.pfx, or if the TFTP server host is a Windows
+        machine, the full file name might be  C:\tftp\user.pfx."
+    DEFVAL  {"Not Defined Yet"}
+::= { snDownloadParams 14 }
+
+
+snDownloadUserCertificateControl    OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        start-load(2),
+        start-save(3)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Setting this object to start-load(2) causes the
+        system to start a downloading process from TFTP server.
+        Setting this object to start-save(3) causes the system to
+        start an uploading process to TFTP server."
+::= { snDownloadParams 15 }
+
+snDownloadServerCertificateFile       OBJECT-TYPE
+    SYNTAX  DisplayString (SIZE(0..32))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Full path name of user certificate file (for Dot1x) to be saved to the TFTP
+        server host. Note that the file name must have the appropriate syntax
+        for the TFTP server host.
+        E.g., if the TFTP server host is a UNIX machine, the full file name
+        might be  /tftp/server.cer, or if the TFTP server host is a Windows
+        machine, the full file name might be  C:\tftp\server.cer."
+    DEFVAL  {"Not Defined Yet"}
+::= { snDownloadParams 16 }
+
+
+snDownloadServerCertificateControl    OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        start-load(2),
+        start-save(3)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Setting this object to start-load(2) causes the
+        system to start a downloading process from TFTP server.
+        Setting this object to start-save(3) causes the system to
+        start an uploading process to TFTP server."
+::= { snDownloadParams 17 }
+
+
+snDownloadUserCertificatePassword    OBJECT-TYPE
+    SYNTAX  DisplayString (SIZE(0..64))
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Password for user certificate to encrypt it to PEM and CER files"
+::= { snDownloadParams 18 }
+
+
+snDownloadEcmCfgPackageControl    OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        start-save(3)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Setting this object to start-save(3) causes the
+        system to start an uploading process to TFTP server."
+::= { snDownloadParams 19 }
+
+-- --------------------------------------------------------------
+-- AD-GEN-MIB:
+-- --------------------------------------------------------------
+
+snUserDescription  OBJECT-TYPE
+    SYNTAX    DisplayString (SIZE (0..255))
+    ACCESS    read-write
+    STATUS    mandatory
+    DESCRIPTION
+        "Extended description of the station including user specific
+        information"
+    DEFVAL  {"Not Defined Yet"}
+::= { snGen 1 }
+
+snHwVersion OBJECT-TYPE
+    SYNTAX DisplayString (SIZE (0..20))
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION
+        "The hardware version of the system in the format major.minor."
+::= { snGen 2 }
+
+snBootStrapVersion OBJECT-TYPE
+    SYNTAX DisplayString (SIZE (0..20))
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION
+        "The firmware version of the bootstrap program installed
+        in the system in the format major.minor."
+::= { snGen 3 }
+
+snSwVersion OBJECT-TYPE
+    SYNTAX  DisplayString (SIZE(0..255))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The software version of the system in the format major.minor."
+::= { snGen 4 }
+
+snInfoOrderNr OBJECT-TYPE
+    SYNTAX DisplayString (SIZE(0..32))
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION
+        "The MLFB number of this product."
+::= { snGen 5 }
+
+snInfoSerialNr OBJECT-TYPE
+    SYNTAX DisplayString (SIZE(0..16))
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION
+        "The serial number of this product."
+::= { snGen 6 }
+
+snBootDelay OBJECT-TYPE
+    SYNTAX INTEGER (1..10)
+    ACCESS read-write
+    STATUS    mandatory
+    DESCRIPTION
+        "Window of time (in seconds) beginning with the initiation
+        of sn reset, during which the user may strike
+        any key on the console terminal to access the Boot CLI."
+    DEFVAL { 5 }
+::= { snGen 7 }
+
+snSerialPortSpeed  OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        other(1),
+        o9600bps(5),
+        o19200bps(6),
+        o38400bps(7),
+        o115200bps(9)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "The serial port speed in bits per second."
+::= { snGen 8 }
+
+
+snScalanceWTelnetEnable OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        not-supported(10),
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        ""
+    DEFVAL { enabled }
+::= { snGen 9 }
+
+snScalanceWTelnetTimeOutEnable OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables or disables the time out for a TELNET session"
+    DEFVAL { enabled }
+::= { snGen 10 }
+
+snScalanceWTelnetTimeOut OBJECT-TYPE
+    SYNTAX  INTEGER (60..600)
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Time out for the TELNET session. The time could be set in
+        steps of 10 secounds"
+    DEFVAL { 300 }
+::= { snGen 11 }
+
+
+snScalanceWSNMPEnable OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        not-supported(10),
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Determines whether this device may be
+        accessed by SNMP management stations"
+    DEFVAL { enabled }
+::= { snGen 12 }
+
+
+-- --------------------------------------------------------------
+-- SIMATIC NET SCALANCE W System Reset Group
+--
+-- This group contains Action MIB Objects that perform reset operations.
+-- --------------------------------------------------------------
+snSysReset  OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        cold-reset(1),
+        warm-reset(2)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Restarts the system.
+        cold-reset(1) is identical to Power-On-Reset or Watchdog-Reset.
+        warm-reset(2) is identical to restart command."
+::= { snGen 13 }
+
+snResetPowerUpCount OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The number of times the sytem was powered up."
+::= { snGen 14 }
+
+snSetFactoryDefs   OBJECT-TYPE
+    SYNTAX    INTEGER
+    {
+        set-factory-defaults(1),
+        set-factory-defaults-complete(2)
+    }
+    ACCESS    write-only
+    STATUS    mandatory
+    DESCRIPTION
+        "Restore factory defaults and restart."
+::= { snGen 15 }
+
+snResetCounters   OBJECT-TYPE
+    SYNTAX    INTEGER
+    {
+        reset-counters(1)
+    }
+    ACCESS    write-only
+    STATUS    mandatory
+    DESCRIPTION
+        "Reset all counters."
+::= { snGen 16 }
+
+snEraseDataStoreFlash   OBJECT-TYPE
+    SYNTAX    INTEGER
+    {
+        erase-datastore(1)
+    }
+    ACCESS    write-only
+    STATUS    mandatory
+    DESCRIPTION
+        "Erase all configuration data and log table entries.
+        In opposite to reset to factory defaults this erase saves nothing."
+::= { snGen 17 }
+
+--
+-- Email objects
+-- This group includes parameters for the Email.
+--
+
+snEmailSMTPIpAddress   OBJECT-TYPE
+    SYNTAX  IpAddress
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "IP address or host name of SMTP e-mail server."
+    DEFVAL  {0}
+::= { snGen 20 }
+
+snEmailSMTPPort    OBJECT-TYPE
+    SYNTAX  INTEGER (1..65535)
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Number of TCP port to which the SMTP e-mail server will listen."
+    DEFVAL  {25}
+::= { snGen 21 }
+
+snEmailEnable OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "E-mail functionality for sending a message when a trap is generated."
+    DEFVAL { disabled }
+::= { snGen 22 }
+
+snEmailAddress OBJECT-TYPE
+    SYNTAX  DisplayString (SIZE (0..255))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "E-mail address to which messages will be sent."
+    DEFVAL  {"user@host.domain"}
+::= { snGen 23 }
+
+snScalanceWSNMPReadOnly OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Determines whether some SNMPv1/v2c Agent may write
+        variables on this device"
+    DEFVAL { enabled }
+::= { snGen 24 }
+
+--
+-- Firmware v3.x objects
+-- This group includes parameters added with firmware v3.x.
+--
+
+snScalanceWPingEnable OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        not-supported(10),
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Determines whether the device will reply to an ICMP echo
+        (Ping) request"
+    DEFVAL { enabled }
+::= { snGen 25 }
+
+snScalanceWHTTPSOnly OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        not-supported(10),
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Determines whether the device will support a HTTPS WEB
+        interface only"
+    DEFVAL { disabled }
+::= { snGen 26 }
+
+snScalanceWSSHEnable OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        not-supported(10),
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Determines whether the device will support the SSH protocol."
+    DEFVAL { disabled }
+::= { snGen 27 }
+
+snScalanceWSysLogIpAddress   OBJECT-TYPE
+    SYNTAX  IpAddress
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "IP address of syslog server."
+    DEFVAL  {0}
+::= { snGen 28 }
+
+snScalanceWSysLogLogtable OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Determines whether log table entries are sent to the syslog server."
+    DEFVAL { enabled }
+::= { snGen 29 }
+
+snScalanceWSysLogAuthlog OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Determines whether authentication log entries are sent to the syslog server."
+    DEFVAL { enabled }
+::= { snGen 30 }
+
+-- --------------------------------------------------------------
+-- AD-NVLG-MIB:
+-- --------------------------------------------------------------
+snNvLogMaxEntries  OBJECT-TYPE
+    SYNTAX    INTEGER (10..400)
+    ACCESS    read-write
+    STATUS    mandatory
+    DESCRIPTION
+        "Maximum number of events that can be kept in
+        Non-Volatile Memory."
+    DEFVAL { 200 }
+::= { snNvLog 1 }
+
+snNvLogCurrentEntries  OBJECT-TYPE
+    SYNTAX    INTEGER
+    ACCESS    read-only
+    STATUS    mandatory
+    DESCRIPTION
+        "Number of events that are currently kept in
+        Non-Volatile Memory."
+    DEFVAL { 0 }
+::= { snNvLog 2 }
+
+snNvLogNewEntries  OBJECT-TYPE
+    SYNTAX    INTEGER
+    ACCESS    read-write
+    STATUS    mandatory
+    DESCRIPTION
+        "Counter for events that are logged in Non-Volatile Memory.
+        This counter starts at 0 after each system start. User can reset
+        this counter at any time by writing 0 to this object."
+    DEFVAL { 0 }
+::= { snNvLog 3 }
+
+snNvLogClear   OBJECT-TYPE
+    SYNTAX    INTEGER
+    {
+        clear(1)
+    }
+    ACCESS    write-only
+    STATUS    mandatory
+    DESCRIPTION
+        "Setting this object to clear(1) value, clears the
+        events that are kept in Non-Volatile Memory."
+::= { snNvLog 4 }
+
+snNvLogTable   OBJECT-TYPE
+    SYNTAX    SEQUENCE OF SnNvLogEntry
+    ACCESS    not-accessible
+    STATUS    mandatory
+    DESCRIPTION
+        "The table contains the last events that occurred
+        in the system."
+::= { snNvLog 5 }
+
+snNvLogEntry   OBJECT-TYPE
+    SYNTAX    SnNvLogEntry
+    ACCESS    not-accessible
+    STATUS    mandatory
+    DESCRIPTION
+        "The description of an event that occurred in the system,
+        and was stored in Non-Volatile memory."
+    INDEX { snNvLogPowerUpCount ,
+        snNvLogTime ,
+    snNvLogSequenceNumber }
+::= { snNvLogTable 1 }
+
+SnNvLogEntry ::= SEQUENCE
+{
+    snNvLogPowerUpCount
+    INTEGER,
+    snNvLogTime
+    TimeTicks,
+    snNvLogSequenceNumber
+    INTEGER,
+    snNvLogDescr
+    DisplayString
+}
+
+snNvLogPowerUpCount       OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The number of times the system was powered up."
+    DEFVAL { 0 }
+::= { snNvLogEntry 1 }
+
+snNvLogTime       OBJECT-TYPE
+    SYNTAX  TimeTicks
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The sysUpTime of the system when the event occurred."
+    DEFVAL { 0 }
+::= { snNvLogEntry 2 }
+
+snNvLogSequenceNumber       OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The system Sequence Number Count."
+    DEFVAL { 0 }
+::= { snNvLogEntry 3 }
+
+snNvLogDescr   OBJECT-TYPE
+    SYNTAX    DisplayString (SIZE (0..256))
+    ACCESS    read-only
+    STATUS    mandatory
+    DESCRIPTION
+        "ASCII Description of the event."
+    DEFVAL { "" }
+::= { snNvLogEntry 4 }
+
+-- --------------------------------------------------------------
+-- AD-TCPIP-MIB:
+-- --------------------------------------------------------------
+
+-- --------------------------------------------------------------
+-- SIMATIC NET SCALANCE W Ip Address Group
+-- --------------------------------------------------------------
+
+snIpAddress OBJECT-TYPE
+    SYNTAX  IpAddress
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "IP address to be used for the agent after reset of the system."
+    DEFVAL  {0}
+::= { snTcpip 2 }
+
+snIpSubnetMask OBJECT-TYPE
+    SYNTAX  IpAddress
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "IP subnet mask to be used by the agent after reset of the system."
+    DEFVAL  {0}
+::= { snTcpip 3 }
+
+snIpDefaultGateway OBJECT-TYPE
+    SYNTAX  IpAddress
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "IP address of the default gateway to be used by the agent
+        after next reset of the system."
+    DEFVAL  {0}
+::= { snTcpip 4 }
+
+snBootP OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS read-write
+    STATUS    mandatory
+    DESCRIPTION
+        "The value enabled(1) will automatically run BOOTP
+        following SCALANCE W reset.
+        The value disabled(2) will inhibit BOOTP."
+    DEFVAL { enabled }
+::= { snTcpip 5 }
+
+snMacAddressBase OBJECT-TYPE
+    SYNTAX MacAddress
+    ACCESS read-only
+    STATUS    mandatory
+    DESCRIPTION
+        "MAC address base of the Scalance W."
+::= { snTcpip 10 }
+
+-- --------------------------------------------------------------
+-- AD-TRAP-MIB:
+-- --------------------------------------------------------------
+snScalanceWTrapsEnable OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        not-supported(10),
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Determines whether this device will
+        transmit traps to SNMP management stations.
+        This if this object is set to disable no traps
+        will be sent.  Setting object is set to enabled
+        is a necessary, but not a sufficient condition for
+        transmission of traps."
+    DEFVAL { enabled }
+::= { snTrapInfo 1 }
+
+snTrapTimeLastGenerated OBJECT-TYPE
+    SYNTAX TimeTicks
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION
+        "The value of sysUpTime at the time the last trap was
+        generated.
+
+        This object can be used by the management station to
+        determine whether traps were generated since the last poll."
+    DEFVAL { 0 }
+::= { snTrapInfo 5 }
+
+snTrapMaxManagers  OBJECT-TYPE
+    SYNTAX    INTEGER
+    ACCESS    read-only
+    STATUS    mandatory
+    DESCRIPTION
+        "The maximum number of managers that can be registered
+        for receiving traps."
+    DEFVAL { 10 }
+::= { snTrapInfo 6 }
+
+snTrapTable    OBJECT-TYPE
+    SYNTAX  SEQUENCE OF SnTrapEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "This table contains information about the managers
+        to which traps should be directed.
+
+        Setting the snTrapState to inactive(3) removes
+        the corresponding entry from the table."
+::= { snTrapInfo 7 }
+
+snTrapEntry    OBJECT-TYPE
+    SYNTAX  SnTrapEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "This object contains runtime information about
+        an individual trap destination."
+    INDEX   { snTrapIndex }
+::= { snTrapTable 1 }
+
+SnTrapEntry ::= SEQUENCE
+{
+    snTrapAddress IpAddress,
+    snTrapState   INTEGER,
+    snTrapIndex   INTEGER
+}
+
+snTrapAddress  OBJECT-TYPE
+    SYNTAX    IpAddress
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "The IP address of the network management entity
+        to which traps (of the type specified in this
+        table entry) should be sent."
+    DEFVAL { 0 }
+::= { snTrapEntry 1 }
+
+snTrapState    OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        other(1),
+        active(2),
+        inactive(3)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "The state of this entry in the trap address
+        table.  Setting this object to inactive(2)
+        removes the corresponding entry from the table."
+    DEFVAL { inactive }
+::= { snTrapEntry 3 }
+
+snTrapIndex    OBJECT-TYPE
+    SYNTAX    INTEGER
+    ACCESS    read-only
+    STATUS    mandatory
+    DESCRIPTION
+        "The Index of Trap Table"
+    REFERENCE
+    "snTrapIndex"
+::= { snTrapEntry 6 }
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCE W COMMON C-PLUG MIB
+-- --------------------------------------------------------------
+snCPlugStatus OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        accepted(1),
+        not-present(2),
+        not-accepted(3),
+        not-accepted-crc-error(4),
+        not-accepted-group-error(5),
+        not-accepted-type-error(6),
+        not-accepted-version-error(7),
+        not-accepted-fstype-error(8),
+        not-accepted-config-error(9),
+        not-accepted-but-need(10)
+    }
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION
+        "Current status of the C-PLUG:
+        accepted(1) C-PLUG is completely accepted (and used) by this device.
+        not-present(2) C-PLUG is (physically) not present.
+        not-accepted(3) C-PLUG is not accepted (reason unknown).
+        not-accepted-crc-error(4) C-PLUG is not accepted, because header CRC is wrong.
+        not-accepted-group-error(5) C-PLUG is not accepted, reason: device group mis-match,   see snCPlugGroupDetected for details.
+        not-accepted-type-error(6) C-PLUG is not accepted, reason: device type mismatch, see snCPlugDeviceDetected for details.
+        not-accepted-version-error(7) C-PLUG is not accepted, wrong configuration revision, see snCPlugConfigRevision for details.
+        not-accepted-fstype-error(8) C-PLUG is not accepted, reason: wrong flash file sytem,  see snCPlugFilesysType for details.
+        not-accepted-config-error(9) C-PLUG is not accepted, because unable to load configuration,
+        not-accepted-but-need(10) C-PLUG is not accepted, but config must be read from C-PLUG."
+::= { snCPlug 1 }
+
+snCPlugGroupDetected OBJECT-TYPE
+    SYNTAX DisplayString (SIZE(0..32))
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION
+        "Device group that is currently read from C-PLUG:
+        'EMPTY' detect a cleaned or a new C-PLUG.
+        'SCALANCE X-400'  detect a C-PLUG that is formatted for X-400 series.
+        'SCALANCE X-200'  detect a C-PLUG that is formatted for X-200 series.
+        'SCALANCE W-700' detect a C-PLUG that is formatted for W-700series.
+        'SCALANCE S-600'  detect a C-PLUG that is formatted for S-600 series.
+        'CP300' detect a C-PLUG that is formatted for CP300 series.
+        'CP400' detect a C-PLUG that is formatted for CP400 series.
+        'IE/PB-Link'  detect a C-PLUG that is formatted for IE/PB-Link series.
+        'IE/ASi-Link' detect a C-PLUG that is formatted for IE/ASi-Link series.
+        'SINAUT' detect a C-PLUG that is formatted for SIMAUT series.
+        'UNKNOWN' detect a C-PLUG with an unknown (could be too new) device group.
+        'ERROR' detect a C-PLUG with an invalid device group value."
+::= { snCPlug 2 }
+
+snCPlugDeviceDetected OBJECT-TYPE
+    SYNTAX DisplayString (SIZE(0..32))
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION
+        "Device type that is currently read from the C-PLUG:
+        this value Depends on the device group, and could be (for example):
+        'SCALANCE W744-1PRO'
+        'SCALANCE W786-1PRO'
+        'SCALANCE W788-2RR'
+        'CP 443-1 Advanced'"
+::= { snCPlug 3 }
+
+snCPlugConfigRevision OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION
+        "Device/group configuration revision found on the C-PLUG:
+        Each device or device group has its own configuration
+        revision value to decide wether  a C-PLUG data could be accepted,
+        has to be migrated or could not be used at all.
+        A value (0) means error, a value (255) means empty."
+::= { snCPlug 4 }
+
+snCPlugFilesysType OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        tffs(1),
+        simatic-net-fs(2),
+        unknown(253),
+        error(254),
+        empty(255)
+    }
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION
+        "Type of the filesystem on the C-PLUG flash."
+::= { snCPlug 5 }
+
+
+snCPlugFilesysSize OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION
+        "Maximum size of the filesystem on the C-PLUG flash in bytes."
+::= { snCPlug 6 }
+
+snCPlugFilesysUsage OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION
+        "Current usage of the filesystem on the C-PLUG flash in bytes."
+::= { snCPlug 7 }
+
+snCPlugInfoString OBJECT-TYPE
+    SYNTAX DisplayString (SIZE(0..255))
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION
+        "Shows the information string stored in the C-PLUG"
+::= { snCPlug 8 }
+
+snCPlugFormat OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        no-operation(1),
+        format-int(2),
+        format-def(3),
+        clean(4),
+        format-in-progress(5)
+    }
+    ACCESS read-write
+    STATUS mandatory
+    DESCRIPTION
+        "Modify content of the C-PLUG as follows:
+        format-int(2) format the C-PLUG for this device and copy device internal values into C-PLUG (if internal values are present). May be supported only by some devices.
+        format-def(3) format the C-PLUG for this device and copy default values into C-PLUG (if any default values are defined). May be supported only by some devices. Restart required.
+        clean(4) format the C-PLUG (physically), thsi will result in a complete empty C-PLUG (if you remove C-PLUG after next power down)."
+::= { snCPlug 9 }
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCE W COMMON PNIO MIB
+-- --------------------------------------------------------------
+snPnioEnable  OBJECT-TYPE
+        SYNTAX  INTEGER {
+	      enabled (1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "The value enabled(1) will automatically run PNIO.
+                The value disabled(2) will inhibit PNIO."
+        ::= { snPnio 1 }
+
+snPnioInDataExchange  OBJECT-TYPE
+        SYNTAX  INTEGER {
+	      online (1),
+          offline (2)
+        }
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "Show the state of PNIOInDataExchange."
+        ::= { snPnio 2 }
+
+snPnioNameOfStation OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..240))
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "Name of Station of the device."
+        ::= { snPnio 3 }
+
+snPnioInDataExchangeControl  OBJECT-TYPE
+        SYNTAX  INTEGER {
+	      allow-online (1),
+          force-to-offline (2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "allow-online (1) allows the device to change in PNIOInDataExchange online.
+        		force-to-offline (2) force the device to PNIOInDataExchange offline."
+        ::= { snPnio 4 }
+
+snPnioFaultMode  OBJECT-TYPE
+        SYNTAX  INTEGER {
+	      latent(1),
+          evident(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Controls the PNIO diagnostics behaviour for the PNIO device:
+        		latent (1) - The device doesn't notify any PNIO fault
+        		evident (2) - The device sets a fault if there is no connection to a PNIO Controller
+        		The PNIO Device sets the snPnioMode automatically to 'evident (2)' if the
+        		device ever established a connection to a PNIO Controller"
+        ::= { snPnio 5 }
+
+-- --------------------------------------------------------------
+-- SN-OSM-MIB:
+-- --------------------------------------------------------------
+snScalanceWFaultState OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        noFault(1),
+        fault(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Indicates SCALANCE W fault state
+        (state of fault LED/signaling contact)"
+    DEFVAL { noFault }
+::= { snScalanceWCommon 2 }
+
+snScalanceWSignalledFaults OBJECT-TYPE
+    SYNTAX  Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Number of signalled faults."
+::= { snScalanceWCommon 3 }
+
+snScalanceWFaultValue OBJECT-TYPE
+    SYNTAX  OCTET STRING (SIZE(4))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Fault value:        0  = no fault,
+        bit 0  = L1 power supply is off,
+        bit 1  = linkdown,
+        bit 2  = internal error,
+        bit 23 = Link Check error,
+        bit 24 = IP-Alive error,
+        bit 25 = power ethernet is off,
+        bit 26 = Cold/Warm start,
+        bit 27 = C-PLUG error,
+        bit 28 = iQoS error,
+        bit 29 = Redundancy error,
+        bit 30 = PNIO error"
+::= { snScalanceWCommon 4 }
+
+
+snScalanceWPowerSupplyM12State OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        inactive(1),
+        active(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "State of L1 power supply."
+    DEFVAL { inactive }
+::= { snScalanceWCommon 41 }
+
+snScalanceWPowerSupplyEthernetState OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        inactive(1),
+        active(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "State of L2 Power over Ethernet (PoE) supply."
+    DEFVAL { inactive }
+::= { snScalanceWCommon 42 }
+
+snScalanceWChangedPowerLine OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        nochange(0),
+        lineM12(1),
+        lineEthernet(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The power line where the last Power-Up or -Down occurred."
+    DEFVAL { nochange }
+::= { snScalanceWCommon 45 }
+
+
+snScalanceWLinkCheckValue OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..64))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Description of the last snScalanceWLinkCheckOn/Off Trap"
+::= { snScalanceWCommon 52 }
+
+snScalanceWIQOSValue OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..254))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Description of the last snScalanceWIQOS Trap"
+::= { snScalanceWCommon 53 }
+
+snScalanceWIpAliveValue OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..64))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Description of the last snScalanceWIpAliveOn/Off Trap"
+::= { snScalanceWCommon 54 }
+
+snScalanceWAuthFailureValue OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..64))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Description of the last snScalanceWAuthFailure Trap"
+::= { snScalanceWCommon 55 }
+
+snScalanceWWDSValue OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..64))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Description of the last snScalanceWWDS Trap"
+::= { snScalanceWCommon 56 }
+
+snScalanceWClientAssocValue OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..64))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Description of the last snScalanceWClientAssociated Trap"
+::= { snScalanceWCommon 57 }
+
+snScalanceWClientDisassocValue OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..128))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Description of the last snScalanceWClientDisassociated Trap"
+::= { snScalanceWCommon 58 }
+
+snScalanceWRadarDetectValue OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..128))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Description of the last snScalanceWRadarDetect Trap"
+::= { snScalanceWCommon 59 }
+
+-- --------------------------------------------------------------
+-- This group includes additional parameters for the event table.
+-- --------------------------------------------------------------
+snScalanceWEventTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF SnScalanceWEventEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Event configuration table."
+::= { snScalanceWCommon 62 }
+
+snScalanceWEventEntry OBJECT-TYPE
+    SYNTAX  SnScalanceWEventEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Events table rows entries."
+    INDEX   { snScalanceWEventIndex }
+::= { snScalanceWEventTable 1 }
+
+SnScalanceWEventEntry ::=
+SEQUENCE
+{
+    snScalanceWEventIndex
+    INTEGER,
+    snScalanceWEventColdWarmStart
+    INTEGER,
+    snScalanceWEventLinkUp
+    INTEGER,
+    snScalanceWEventLinkDown
+    INTEGER,
+    snScalanceWEventAuthenticationFailure
+    INTEGER,
+    snScalanceWEventPowerM12Change
+    INTEGER,
+    snScalanceWEventPowerEthernetChange
+    INTEGER,
+    snScalanceWEventFault
+    INTEGER,
+    snScalanceWEventIpAliveChange
+    INTEGER,
+    snScalanceWEventLinkCheckChange
+    INTEGER,
+    snScalanceWEventIQOS
+    INTEGER,
+    snScalanceWEventClientAssociated
+    INTEGER,
+    snScalanceWEventRedundancy
+    INTEGER,
+    snScalanceWEventOverlapAP
+    INTEGER,
+    snScalanceWEventIPCFPNIOmaxSTAs
+    INTEGER,
+    snScalanceWEventIPCFPNIOCycleTime
+    INTEGER,
+    snScalanceWEventIPCFPNIOCPollSize
+    INTEGER,
+    snScalanceWEventForcedRoaming
+    INTEGER,
+    snScalanceWEventRSTP
+    INTEGER,
+    snScalanceWEventWDS
+    INTEGER,
+    snScalanceWEventClientDisassociated
+    INTEGER,
+    snScalanceWEventRadarInterference
+    INTEGER
+}
+
+snScalanceWEventIndex OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        eMail(1),
+        trap(2),
+        logTabel(3),
+        faultState(4)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Index of columns : E-Mail = 1, Traps = 2, LogTable = 3,
+        Fault state = 4"
+    DEFVAL { eMail }
+::= { snScalanceWEventEntry 1 }
+
+snScalanceWEventColdWarmStart OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables cold/warm start notification."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 2 }
+
+snScalanceWEventLinkUp OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables link up notification (There is no Fault notification)."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 3 }
+
+snScalanceWEventLinkDown OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables link down notification."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 4 }
+
+snScalanceWEventAuthenticationFailure OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables authentication failure notification (There is no Fault notification)."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 5 }
+
+snScalanceWEventPowerM12Change OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables L1 power supply change notification."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 6 }
+
+snScalanceWEventPowerEthernetChange OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables L2 Power over Ethernet (PoE) supply change notification."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 7 }
+
+snScalanceWEventFault OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables fault notification (There is no Fault notification)."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 9 }
+
+snScalanceWEventIpAliveChange OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the IP-Alive state change notification."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 10 }
+
+snScalanceWEventLinkCheckChange OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the Link Check state change notification."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 11 }
+
+snScalanceWEventIQOS OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the IQOS notification events."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 12 }
+
+snScalanceWEventClientAssociated OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the 'Client Associated' notification events."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 13 }
+
+snScalanceWEventRedundancy OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the 'Redundancy' notification events."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 14 }
+
+snScalanceWEventOverlapAP OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the 'Found Overlap AP' notification events."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 15 }
+
+snScalanceWEventIPCFPNIOmaxSTAs OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the 'iPCF PNIO max STAs' notification events."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 16 }
+
+snScalanceWEventIPCFPNIOCycleTime OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the 'iPCF PNIO Cycle Time' notification events."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 17 }
+
+snScalanceWEventForcedRoaming OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the 'Forced Roaming on IP down' notification events."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 18 }
+
+snScalanceWEventRSTP OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables (R)STP's 'Topology Change' and 'New Root' notification events."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 19 }
+
+snScalanceWEventWDS OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables WDS notification events."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 20 }
+
+snScalanceWEventIPCFPNIOCPollSize OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the 'iPCF Cyclic Poll Size exceeded' notification events."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 21 }
+
+snScalanceWEventClientDisassociated OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the 'Client Disassociated' notification events."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 22 }
+
+snScalanceWEventRadarInterference OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        notSupported(0),
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the 'Radar interference detected' notification events."
+    DEFVAL { checked }
+::= { snScalanceWEventEntry 23 }
+
+-- --------------------------------------------------------------
+-- AD-SN-MIB:
+-- --------------------------------------------------------------
+snConfigId OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        scalanceWgroup               (0),
+        scalanceW788-2PRO            (1),
+        scalanceW788-1PRO            (2),
+        scalanceW788-2PRO-client     (3),
+        scalanceW788-1PRO-client     (4),
+        scalanceW744-1PRO            (5),
+        scalanceW788-2RR             (6),
+        scalanceW788-1RR             (7),
+        scalanceW788-2RR-client      (8),
+        scalanceW788-1RR-client      (9),
+        scalanceW747-1RR            (10),
+        scalanceW746-1PRO           (11),
+        scalanceW786-1PRO           (13),
+        scalanceW786-2PRO           (14),
+        scalanceW786-3PRO           (15),
+        scalanceW786-1PRO-FO        (16),
+        scalanceW786-2PRO-FO        (17),
+        scalanceW786-3PRO-FO        (18),
+        scalanceW786-2RR            (20),
+        scalanceW784-1              (25),
+        scalanceW784-1-client       (26),
+        scalanceW784-1RR            (27),
+        scalanceW784-1RR-client     (28),
+        scalanceW744-1              (29),
+        scalanceW746-1              (30),
+        scalanceW747-1              (31),
+        scalanceW786-1PRO-client    (32),
+        scalanceW786-2PRO-client    (33),
+        scalanceW786-3PRO-client    (34),
+        scalanceW786-1PRO-FO-client (35),
+        scalanceW786-2PRO-FO-client (36),
+        scalanceW786-3PRO-FO-client (37),
+        scalanceW786-2RR-client     (39)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "SCALANCE W hardware and configuration type.
+        scalanceWgroup              - type unknown,
+        scalanceW788-2PRO           - Access point with two wireless interfaces (IP65),
+        scalanceW788-2PRO-client    - Access point with two wireless interfaces in client mode (IP65),
+        scalanceW788-1PRO           - Access point with one wireless interface (IP65),
+        scalanceW788-1PRO-client    - Access point with one wireless interface in client mode (IP65),
+        scalanceW744-1PRO           - Ethernet Client Module (IP65),
+        scalanceW788-2RR            - Access point with two wireless interfaces and with iPCF support (IP65),
+        scalanceW788-2RR-client     - Access point with two wireless interfaces and with iPCF support in client mode (IP65),
+        scalanceW788-1RR            - Access point with one wireless interface and with iPCF support (IP65),
+        scalanceW788-1RR-client     - Access point with one wireless interface and with iPCF support in client mode (IP65),
+        scalanceW747-1RR            - Ethernet Client Module with iPCF support (IP65),
+        scalanceW746-1PRO           - Ethernet Client Module with IP Mapping support (IP65),
+        scalanceW786-1PRO           - Access point for extended temperature range with one wireless interface (IP65),
+        scalanceW786-1PRO-client    - Access point for extended temperature range with one wireless interface in client mode (IP65),
+        scalanceW786-2PRO           - Access point for extended temperature range with two wireless interfaces (IP65),
+        scalanceW786-2PRO-client    - Access point for extended temperature range with two wireless interfaces in client mode (IP65),
+        scalanceW786-3PRO           - Access point for extended temperature range with three wireless interfaces (IP65),
+        scalanceW786-3PRO-client    - Access point for extended temperature range with three wireless interfaces in client mode (IP65),
+        scalanceW786-1PRO-FO        - Access point for extended temperature range with FO network connector and one wireless interface (IP65),
+        scalanceW786-1PRO-FO-client - Access point for extended temperature range with FO network connector and one wireless interface in client mode (IP65),
+        scalanceW786-2PRO-FO        - Access point for extended temperature range with FO network connector and two wireless interfaces (IP65),
+        scalanceW786-2PRO-FO-client - Access point for extended temperature range with FO network connector and two wireless interfaces in client mode (IP65),
+        scalanceW786-3PRO-FO        - Access point for extended temperature range with FO network connector and three wireless interfaces (IP65),
+        scalanceW786-3PRO-FO-client - Access point for extended temperature range with FO network connector and three wireless interfaces in client mode (IP65),
+        scalanceW786-2RR            - Access point for extended temperature range with two wireless interfaces and with iPCF support (IP65)
+        scalanceW786-2RR-client     - Access point for extended temperature range with two wireless interfaces and with iPCF support in client mode (IP65)
+        scalanceW784-1              - Access point with one wireless interface (IP30),
+        scalanceW784-1-client       - Access point with one wireless interface in client mode (IP30),
+        scalanceW784-1RR            - Access point with one wireless interface (IP30),
+        scalanceW784-1RR-client     - Access point with one wireless interface in client mode (IP30),
+        scalanceW744-1              - Ethernet Client Module (IP30),
+        scalanceW746-1              - Ethernet Client Module with IP Mapping support (IP30),
+        scalanceW747-1              - Ethernet Client Module with iPCF support (IP30),
+        "
+::= { snScalanceWCommon 100 }
+
+
+snScalanceWAgingEnable    OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable/Disable auto-aging functionality of the learning table."
+    DEFVAL  {enabled}
+::= { snScalanceWCommon 105 }
+
+snScalanceWWebLanguage OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        english(1),
+        german(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Language of WEB Interface.
+        english(1) - WEB Interface in english.
+        german(2) - WEB Interface in german."
+    DEFVAL { english }
+::= { snScalanceWCommon 111 }
+
+snScalanceWMgmtEthernet OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled   (1),
+        disabled  (2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "If this variable is set to enabled,
+        then SCALANCE W can be managed only from Ethernet
+        Interface and not from Wireless interfaces."
+    DEFVAL { enabled }
+::= { snScalanceWCommon 112 }
+
+snScalanceWWebEnable OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled   (1),
+        disabled  (2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable or Disable WEB Interface."
+    DEFVAL { enabled }
+::= { snScalanceWCommon 113 }
+
+snScalanceWPsuEnable OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled   (1),
+        disabled  (2),
+        readonly  (3)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable, disable or set to 'Read Only' Primary Setup Unit."
+    DEFVAL { enabled }
+::= { snScalanceWCommon 114 }
+
+snScalanceWConfigSource OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        internal   (1),
+        c-plug     (2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Show source of configuration. From internal memory (1) or from C-PLUG(2).
+        You can write this variable only if snScalanceWFaultState=fault(2)
+        and if snScalanceWFaultValue=C-PLUG error (0x08000000).
+        snScalanceWConfigSource can be set only to internal (1).
+        It will be done restart of SCALANCE W after snScalanceWConfigSource changing."
+    DEFVAL { internal }
+::= { snScalanceWCommon 115 }
+
+snScalanceWRedundancyState OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled-not-connected   (1),
+        disabled                (2),
+        enabled-connected-wlan1 (3),
+        enabled-connected-wlan2 (4),
+        enabled-connected-both  (5),
+        unknown                 (6)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Status of redundancy connection:
+        enabled-not-connected   (1) - Redundancy enabled but there is no connection,
+        disabled                (2) - Redundancy disabled or Client mode or only one Wireless Interface,
+        enabled-connected-wlan1 (3) - Redundancy enabled and connected only over first wireless interface
+        enabled-connected-wlan2 (4) - Redundancy enabled and connected only over second wireless interface
+        enabled-connected-both  (5) - Redundancy enabled and connected over both wireless interfaces
+        unknown                 (6) - Unknown state"
+    DEFVAL { disabled }
+::= { snScalanceWCommon 116 }
+
+snScalanceWRedundancyValue OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..64))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Description of the last Redundancy Trap"
+::= { snScalanceWCommon 117 }
+
+snScalanceWRedundancyState1 OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        not-established        (1),
+        connection-ok          (2),
+        timeout                (3),
+        mac-address-invalid    (4),
+        connection-see-beacons (5)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Status of redundancy connection on WLAN 1:
+        not-established        (1) - Connection not established,
+        connection-ok          (2) - Connected,
+        timeout                (3) - Cannot find beacons of the partner,
+        mac-address-invalid    (4) - The MAC Address of the device with this SysName is in use,
+        connection-see-beacons (5) - Physical contact exists, but communication is not established because of encryption problem"
+    DEFVAL { connection-ok }
+::= { snScalanceWCommon 118 }
+
+snScalanceWRedundancyState2 OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        not-established        (1),
+        connection-ok          (2),
+        timeout                (3),
+        mac-address-invalid    (4),
+        connection-see-beacons (5)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Status of redundancy connection on WLAN 2:
+        not-established        (1) - Connection not established,
+        connection-ok          (2) - Connected,
+        timeout                (3) - Cannot find beacons of the partner,
+        mac-address-invalid    (4) - The MAC Address of the device with this SysName is in use,
+        connection-see-beacons (5) - Physical contact exists, but communication is not established because of encryption problem"
+    DEFVAL { connection-ok }
+::= { snScalanceWCommon 119 }
+
+snScalanceWOverlapAPValue OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..254))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Description of the last snScalanceWOverlapAP Trap"
+::= { snScalanceWCommon 120 }
+
+snScalanceWPNIOValue OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..254))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Description of the last snScalanceWiPCFPNIOmaxSTAs, snScalanceWiPCFPNIOCycleTime or snScalanceWiPCFPNIOCPollSize Trap"
+::= { snScalanceWCommon 121 }
+
+-- -------------------------------------------------------------
+-- Groups in SN-SCALANCEW-FILTER
+-- -------------------------------------------------------------
+
+snScalanceWProtocolFilterEnabled OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled   (1),
+        disabled  (2),
+        not-supported(10)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable or disable Ethernet and Non-ethernet protocols filter."
+::= { snScalanceWFilter 1 }
+
+snScalanceWAllProtoFilterStatus OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        forwarded   (1),
+        blocked     (2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Type of protocol filter: if all selected protocols
+        will be forwarded and all another will be blocked (forwarded) or
+        all selected protocols will be blocked and all another
+        ones will be forwarded (blocked)."
+::= { snScalanceWFilter 2 }
+
+snScalanceWProtoEthFilterControl OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        add-new-entry (-1)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Control variable of ethernet protocols filter.
+        If you read this variable, it will be returned index of last added protocol entry.
+        If you read -1, then there are no custom protocol entries in the table.
+        If you write some index in this variable, than if index was an index of the custom entry, this entry will be deleted.
+        If you write -1 in this variable, than it will be added one new entry to the list.
+        The index of added new entry you can read from this variable too."
+::= { snScalanceWFilter 3 }
+
+snScalanceWProtocolFilterEdit OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        editable (1),
+        not-editable (2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Flag for editing ethernet and non-ethernet protocol tabels.
+        If flag set to editable, you can edit all entries of the
+        ethernet and non-ethernet protocols filter tables.
+        As this flag will be set to not-editable, all changes will be applied by SCALANCE W."
+::= { snScalanceWFilter 4 }
+
+-- --------------------------------------------------------------
+-- This group includes additional parameters for the ProtoEthFilter table.
+-- --------------------------------------------------------------
+
+snScalanceWProtoEthFilterTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF SnScalanceWProtoEthFilterEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Ethernet protocol filter table."
+::= { snScalanceWFilter 5 }
+
+snScalanceWProtoEthFilterEntry OBJECT-TYPE
+    SYNTAX  SnScalanceWProtoEthFilterEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Ethernet protocol filter table rows entries."
+    INDEX   { snScalanceWProtoEthFilterIndex }
+::= { snScalanceWProtoEthFilterTable 1 }
+
+SnScalanceWProtoEthFilterEntry ::=
+SEQUENCE
+{
+    snScalanceWProtoEthFilterIndex
+    INTEGER,
+    snScalanceWProtoEthFilterDecsr
+    DisplayString,
+    snScalanceWProtoEthFilterPattern
+    OCTET STRING,
+    snScalanceWProtoEthFilterStatus
+    INTEGER,
+    snScalanceWProtoEthFilterType
+    INTEGER
+}
+
+snScalanceWProtoEthFilterIndex OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Index of ethernet protocols."
+    DEFVAL { 0 }
+::= { snScalanceWProtoEthFilterEntry 1 }
+
+snScalanceWProtoEthFilterDecsr OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..32))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Description of ethernet protocol."
+    DEFVAL { "No name" }
+::= { snScalanceWProtoEthFilterEntry 2 }
+
+snScalanceWProtoEthFilterPattern OBJECT-TYPE
+    SYNTAX  OCTET STRING  (SIZE(0..2))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Pattern of ethernet protocol. For example for IP protocol Pattern is 08 00"
+    DEFVAL { "" }
+::= { snScalanceWProtoEthFilterEntry 3 }
+
+snScalanceWProtoEthFilterStatus OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        selected(1),
+        not-selected(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Status of ethernet protocol: selected or not-selected."
+::= { snScalanceWProtoEthFilterEntry 4 }
+
+snScalanceWProtoEthFilterType OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        default(1),
+        custom(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Type of the protocol entry.
+        If Type = default then this entry is not editable.
+        It can be changed only status of protocol entry.
+        If Type = custom then it can be changed all fields except index."
+    DEFVAL { custom }
+::= { snScalanceWProtoEthFilterEntry 5 }
+
+-- --------------------------------------------------------------
+-- This group includes additional parameters for the ProtoFilter table.
+-- --------------------------------------------------------------
+
+snScalanceWProtocolFilterTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF SnScalanceWProtocolFilterEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Non-Ethernet Protocol filter table."
+::= { snScalanceWFilter 6 }
+
+snScalanceWProtocolFilterEntry OBJECT-TYPE
+    SYNTAX  SnScalanceWProtocolFilterEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Non-Ethernet Protocol filter table rows entries."
+    INDEX   { snScalanceWProtocolFilterIndex }
+::= { snScalanceWProtocolFilterTable 1 }
+
+SnScalanceWProtocolFilterEntry ::=
+SEQUENCE
+{
+    snScalanceWProtocolFilterIndex
+    INTEGER,
+    snScalanceWProtocolFilterDecsr
+    DisplayString,
+    snScalanceWProtocolFilterStatus
+    INTEGER
+}
+
+snScalanceWProtocolFilterIndex OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Index of protocols."
+    DEFVAL { 0 }
+::= { snScalanceWProtocolFilterEntry 1 }
+
+snScalanceWProtocolFilterDecsr OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..32))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Description of protocol."
+    DEFVAL { "No name" }
+::= { snScalanceWProtocolFilterEntry 2 }
+
+snScalanceWProtocolFilterStatus OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        selected(1),
+        not-selected(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Status of protocol: selected or not-selected."
+::= { snScalanceWProtocolFilterEntry 3 }
+
+-- -------------------------------------------------------------
+-- The Storm Threshold Subgroup:  SN-SCALANCEW-STORM-THRESHOLDS-MIB
+-- -------------------------------------------------------------
+
+-- Storm Thresholds Tree Group
+snScalanceWStormThreshold OBJECT IDENTIFIER ::= { snScalanceWFilter 7 }
+
+--=============================================================================
+-- The Storm Threshold Subgroup: snScalanceWStormThresholds
+--=============================================================================
+
+snScalanceWStormThresholdStatus OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        enable(1),
+        disable(2)
+    }
+    ACCESS  read-write
+    STATUS mandatory
+    DESCRIPTION
+        "This object is used to enable/disable the storm thresholds in the device."
+    DEFVAL { disable }
+::= { snScalanceWStormThreshold 1 }
+
+snScalanceWBroadcastAddressThreshold OBJECT-TYPE
+    SYNTAX INTEGER (0..255)
+    ACCESS read-write
+    STATUS mandatory
+    DESCRIPTION
+        "If broadcast rate from any device (identified by its MAC address)
+        exceeds the limit specified by this value, the device will
+        ignore all subsequent messages issued by the particular network
+        device, or ignore all messages of that type. Valid values for
+        address threshold is between 0 - 255 frames per second. Initial
+        Value is 0 (Disable Storm Threshold Protection)."
+    DEFVAL { 0 }
+::= { snScalanceWStormThreshold 2 }
+
+snScalanceWMulticastAddressThreshold OBJECT-TYPE
+    SYNTAX INTEGER (0..255)
+    ACCESS read-write
+    STATUS mandatory
+    DESCRIPTION
+        "If multicast rate from any device (identified by its MAC address)
+        exceeds the limit specified by this value, the device will
+        ignore all subsequent messages issued by the particular network
+        device, or ignore all messages of that type. Valid values for
+        address threshold is between 0 - 255 frames per second. Initial
+        Value is 0 (Disable Storm Threshold Protection)."
+    DEFVAL { 0 }
+::= { snScalanceWStormThreshold 3 }
+
+snScalanceWStormThresholdTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF SnScalanceWStormThresholdEntry
+    ACCESS not-accessible
+    STATUS mandatory
+    DESCRIPTION
+        "The table containing broadcast and multicast threshold values for
+        each interface."
+::= { snScalanceWStormThreshold 4 }
+
+snScalanceWStormThresholdEntry  OBJECT-TYPE
+    SYNTAX SnScalanceWStormThresholdEntry
+    ACCESS not-accessible
+    STATUS mandatory
+    DESCRIPTION
+        "This object represents an entry in the storm threshold filter
+        table."
+    INDEX { snScalanceWStormThresholdIfIndex }
+::= { snScalanceWStormThresholdTable 1 }
+
+SnScalanceWStormThresholdEntry ::=
+SEQUENCE
+{
+    snScalanceWStormThresholdIfIndex    INTEGER,
+    snScalanceWStormThresholdIfBroadcast    INTEGER,
+    snScalanceWStormThresholdIfMulticast    INTEGER
+}
+
+snScalanceWStormThresholdIfIndex OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Index of interfaces."
+    DEFVAL { 0 }
+::= { snScalanceWStormThresholdEntry 1 }
+
+snScalanceWStormThresholdIfBroadcast  OBJECT-TYPE
+    SYNTAX INTEGER (0..9999)
+    ACCESS read-write
+    STATUS mandatory
+    DESCRIPTION
+        "This parameter specifies a set of Broadcast Storm thresholds for
+        each interface/port of the device, identifying separate
+        values for the number of Broadcast messages/second.  Default value
+        is zero, which means disabled."
+    DEFVAL { 0 }
+::= { snScalanceWStormThresholdEntry 2 }
+
+snScalanceWStormThresholdIfMulticast  OBJECT-TYPE
+    SYNTAX INTEGER (0..9999)
+    ACCESS read-write
+    STATUS mandatory
+    DESCRIPTION
+        "This parameter specifies a set of Multicast Storm thresholds for
+        each interface/port of the device, identifying separate
+        values for the number of Multicast messages/second.  Default value
+        is zero, which means disabled."
+    DEFVAL { 0 }
+::= { snScalanceWStormThresholdEntry 3 }
+
+-- --------------------------------------------------------------
+-- This group includes parameters for the snScalanceWStats table.
+-- --------------------------------------------------------------
+
+snScalanceWStatsTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF SnScalanceWStatsEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Stats table for WLAN interfaces."
+::= { snScalanceWStats 5 }
+
+snScalanceWStatsEntry OBJECT-TYPE
+    SYNTAX  SnScalanceWStatsEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Stats table rows entries."
+    INDEX   { snScalanceWStatsIndex }
+::= { snScalanceWStatsTable 1 }
+
+SnScalanceWStatsEntry ::=
+SEQUENCE
+{
+    snScalanceWStatsIndex
+    INTEGER,
+    snScalanceWStatsMAC
+    OCTET STRING,
+    snScalanceWStatsState
+    INTEGER,
+    snScalanceWStatsPwrSave
+    INTEGER,
+    snScalanceWStatsWlanMode
+    INTEGER,
+    snScalanceWStatsNonErpType
+    INTEGER,
+    snScalanceWStatsEncryption
+    INTEGER,
+    snScalanceWStatsCipherType
+    INTEGER,
+    snScalanceWStatsAuthType
+    INTEGER,
+    snScalanceWStatsBSSType
+    INTEGER,
+    snScalanceWStatsChannel
+    INTEGER,
+    snScalanceWStatsBeaconInterval
+    INTEGER,
+    snScalanceWStatsDTIMInterval
+    INTEGER,
+    snScalanceWStatsSupportedRates
+    OCTET STRING,
+    snScalanceWStatsSSID
+    OCTET STRING,
+    snScalanceWStatsAssocCount
+    Counter,
+    snScalanceWStatsDisassocCount
+    Counter,
+    snScalanceWStatsAuthCount
+    Counter,
+    snScalanceWStatsDeauthCount
+    Counter,
+    snScalanceWStatsOutdoorMode
+    INTEGER,
+    snScalanceWStatsWMM
+    INTEGER,
+    snScalanceWStatsRxAntenna
+    INTEGER,
+    snScalanceWStatsRxFrames
+    Counter,
+    snScalanceWStatsRxBytes
+    Counter,
+    snScalanceWStatsRxDataFrames
+    Counter,
+    snScalanceWStatsRxDataBytes
+    Counter,
+    snScalanceWStatsRxUnicast
+    Counter,
+    snScalanceWStatsRxMulticast
+    Counter,
+    snScalanceWStatsRxBroadcast
+    Counter,
+    snScalanceWStatsRxMgmtFrames
+    Counter,
+    snScalanceWStatsRxCtrlFrames
+    Counter,
+    snScalanceWStatsRxErrors
+    Counter,
+    snScalanceWStatsRxAckErrors
+    Counter,
+    snScalanceWStatsRxCrcErrors
+    Counter,
+    snScalanceWStatsRxDiscardErrors
+    Counter,
+    snScalanceWStatsRxDupFrameErrors
+    Counter,
+    snScalanceWStatsRxWepXErrors
+    Counter,
+    snScalanceWStatsRxSignal
+    INTEGER,
+    snScalanceWStatsRxRate
+    INTEGER,
+    snScalanceWStatsRxDecibelMilliwatts
+    INTEGER,
+    snScalanceWStatsTxAntenna
+    INTEGER,
+    snScalanceWStatsTxFrames
+    Counter,
+    snScalanceWStatsTxBytes
+    Counter,
+    snScalanceWStatsTxDataFrames
+    Counter,
+    snScalanceWStatsTxDataBytes
+    Counter,
+    snScalanceWStatsTxUnicast
+    Counter,
+    snScalanceWStatsTxMulticast
+    Counter,
+    snScalanceWStatsTxBroadcast
+    Counter,
+    snScalanceWStatsTxMgmtFrames
+    Counter,
+    snScalanceWStatsTxCtrlFrames
+    Counter,
+    snScalanceWStatsTxErrors
+    Counter,
+    snScalanceWStatsTxDroppedErrors
+    Counter,
+    snScalanceWStatsTxRtsErrors
+    Counter,
+    snScalanceWStatsTxSignal
+    INTEGER,
+    snScalanceWStatsTxRate
+    INTEGER,
+    snScalanceWStatsTxTotalRetries
+    INTEGER
+}
+
+snScalanceWStatsIndex OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        wireless1(1),
+        wireless2(2),
+        wireless3(3)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the wireless interface,
+        which the client is connected to."
+    DEFVAL { wireless1 }
+::= { snScalanceWStatsEntry 1 }
+
+snScalanceWStatsMAC OBJECT-TYPE
+    SYNTAX  OCTET STRING  (SIZE(0..6))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Mac address of the client."
+    DEFVAL { "" }
+::= { snScalanceWStatsEntry 3 }
+
+snScalanceWStatsState OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        authenticated(1),
+        associated(2),
+        powersave(3),
+        adhoc(4),
+        joined(5),
+        ap-is-up(6),
+        ap-starting(7),
+        ap-is-down(8),
+        locked(9),
+        ap-connected(10)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A state of the client."
+::= { snScalanceWStatsEntry 5 }
+
+snScalanceWStatsPwrSave OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        on(1),
+        off(2),
+        not-supported(10)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This attribute shall specify the power management
+        mode of the STA. When set to 'off', it shall indicate
+        that the station is not in power-save mode. When set
+        to 'on', it shall indicate that the station is
+        in power-save mode. The power management mode is
+        transmitted in all frames according to the rules
+        in  7.1.3.1.7.   Supported only in ECM mode."
+::= { snScalanceWStatsEntry 6 }
+
+snScalanceWStatsWlanMode OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        mode-80211b(1),
+        mode-80211g(2),
+        mode-80211a(3),
+        mode-80211a-Turbo(4),
+        mode-80211g-Turbo(5),
+        mode-80211h(6),
+        mode-80211h-Turbo(7)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Wlan mode of the client:
+        802.11b - 2.4GHz 11Mbps,
+        802.11g - 2.4GHz 54Mbps,
+        802.11a - 5GHz 54Mbps,
+        802.11a-Turbo - 5GHz 108Mbps,
+        802.11g-Turbo - 2.4Ghz 108Mbs,
+        802.11h - 5GHz 54Mbps,
+        802.11h-Turbo - 5GHz 108Mbps."
+::= { snScalanceWStatsEntry 7 }
+
+snScalanceWStatsNonErpType OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        non-Erp(1),
+        none(2),
+        non-Erp-Protection(3)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Non-ERP mode of the station.
+        non-ERP: Non ERP STA present,
+        none: non ERP STA does not present,
+        non-Erp-Protection: when protection mechnism on."
+::= { snScalanceWStatsEntry 8 }
+
+snScalanceWStatsEncryption OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        yes(1),
+        no(2),
+        not-supported(10)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A variable as to whether encryption is to be used when communicating
+        with the client."
+::= { snScalanceWStatsEntry 9 }
+
+snScalanceWStatsCipherType OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        clear(1),
+        none(2),
+        wep(3),
+        aes(4),
+        tkip(5),
+        auto(6)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An encryption type. If 'auto', then the cipher will be set by server."
+::= { snScalanceWStatsEntry 10 }
+
+snScalanceWStatsAuthType OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        open-system(1),
+        shared-key(2),
+        wpa(3),
+        wpa-psk(4),
+        radius-802-1x(5),
+        wpa2(6),
+        wpa2-psk(7),
+        wpa-auto(8),
+        wpa-auto-psk(9)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An authentication algorithm is currently used for the client:
+        open-system: no encryption,
+        shared-key: use WEP,
+        WPA: use WPA,
+        WPA-PSK: WPA with preshared key,
+        802.1x: use Radius,
+        WPA2: use WPA2,
+        WPA2-PSK: WPA2 with preshared key,
+        WPA-AUTO: WPA/WPA2,
+        WPA-AUTO-PSK: WPA/WPA2 with preshared key."
+::= { snScalanceWStatsEntry 11 }
+
+snScalanceWStatsBSSType OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        infrastructure(1),
+        independent(2),
+        any(3)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Supported only in RAP mode."
+::= { snScalanceWStatsEntry 12 }
+
+snScalanceWStatsChannel OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Current channel of WLAN."
+::= { snScalanceWStatsEntry 13 }
+
+snScalanceWStatsBeaconInterval OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Current Beacon Interval."
+::= { snScalanceWStatsEntry 14 }
+
+snScalanceWStatsDTIMInterval OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Current DTIM Interval."
+::= { snScalanceWStatsEntry 15 }
+
+snScalanceWStatsSupportedRates OBJECT-TYPE
+    SYNTAX  OCTET STRING  (SIZE(0..64))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "String with supported frames multiplicated by 2"
+::= { snScalanceWStatsEntry 16 }
+
+snScalanceWStatsSSID OBJECT-TYPE
+    SYNTAX  OCTET STRING  (SIZE(0..32))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Current SSID. Supported only in RAP mode."
+::= { snScalanceWStatsEntry 17 }
+
+snScalanceWStatsAssocCount OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of received association-request MMPDUs from the client. Supported only in RAP mode."
+::= { snScalanceWStatsEntry 20 }
+
+snScalanceWStatsDisassocCount OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of received disassociation frames from the client. Supported only in RAP mode."
+::= { snScalanceWStatsEntry 21 }
+
+snScalanceWStatsAuthCount OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of received authentication frames from the client. Supported only in RAP mode."
+::= { snScalanceWStatsEntry 22 }
+
+snScalanceWStatsDeauthCount OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of received deauthentication frames from the client. Supported only in RAP mode."
+::= { snScalanceWStatsEntry 23 }
+
+snScalanceWStatsOutdoorMode OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Shows if Outdoor Mode is enabled for the current WLAN."
+::= { snScalanceWStatsEntry 30 }
+
+snScalanceWStatsWMM OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Shows if WMM is enabled for the current WLAN."
+::= { snScalanceWStatsEntry 31 }
+
+snScalanceWStatsRxAntenna OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        antennaA(1),
+        antennaB(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Shows where the last frame was received."
+::= { snScalanceWStatsEntry 40 }
+
+snScalanceWStatsRxFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall be incremented for each successfully
+        received MPDU from the client."
+::= { snScalanceWStatsEntry 41 }
+
+snScalanceWStatsRxBytes OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An amount of bytes successfully received from this client."
+::= { snScalanceWStatsEntry 42 }
+
+snScalanceWStatsRxDataFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall be incremented for each successfully
+        received MPDU of type Data from the client."
+::= { snScalanceWStatsEntry 43 }
+
+snScalanceWStatsRxDataBytes OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An amount of data bytes successfully received from the client."
+::= { snScalanceWStatsEntry 44 }
+
+snScalanceWStatsRxUnicast OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment when a MSDU is received from the client
+        with the unicast MAC address."
+::= { snScalanceWStatsEntry 45 }
+
+snScalanceWStatsRxMulticast OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment when a MSDU is received from the client
+        with the multicast bit set in the destination MAC address."
+::= { snScalanceWStatsEntry 46 }
+
+snScalanceWStatsRxBroadcast OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment when a MSDU is received from the client
+        with the broadcast MAC address."
+::= { snScalanceWStatsEntry 47 }
+
+snScalanceWStatsRxMgmtFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall be incremented for each successfully
+        received MPDU of type Management from the client."
+::= { snScalanceWStatsEntry 48 }
+
+snScalanceWStatsRxCtrlFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall be incremented for each successfully
+        received Control Frame from the client."
+::= { snScalanceWStatsEntry 49 }
+
+snScalanceWStatsRxErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Count of a receiving errors in communication with the client."
+::= { snScalanceWStatsEntry 50 }
+
+snScalanceWStatsRxAckErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of an acknowledge errors in communication with the client."
+::= { snScalanceWStatsEntry 51 }
+
+snScalanceWStatsRxCrcErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of a CRC errors in communication with the client."
+::= { snScalanceWStatsEntry 52 }
+
+snScalanceWStatsRxDiscardErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of discarded frames from the client."
+::= { snScalanceWStatsEntry 53 }
+
+snScalanceWStatsRxDupFrameErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment when a frame from the clietn is received
+        that the Sequence Control field indicates is a duplicate."
+::= { snScalanceWStatsEntry 55 }
+
+snScalanceWStatsRxWepXErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment when a frame from the client is received with
+        the WEP subfield of the Frame Control field set to one and the
+        WEPOn value for the key mapped to the TA's MAC address
+        indicates that the frame should not have been encrypted or
+        that frame is discarded due to the receiving STA not
+        implementing the privacy option."
+::= { snScalanceWStatsEntry 58 }
+
+
+snScalanceWStatsRxSignal OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The current signal level (in percent) from this client. Will be shown only in client mode."
+::= { snScalanceWStatsEntry 60 }
+
+snScalanceWStatsRxRate OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Bit rate of the connection between the client and AP, multiplied by 2."
+::= { snScalanceWStatsEntry 61 }
+
+snScalanceWStatsRxDecibelMilliwatts OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The current signal level (in dBm) from this client. Will be shown only in client mode."
+::= { snScalanceWStatsEntry 62 }
+
+snScalanceWStatsTxAntenna OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        antennaA(1),
+        antennaB(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A transmit antenna."
+::= { snScalanceWStatsEntry 80 }
+
+snScalanceWStatsTxFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment for each successfully transmitted to the client MSDU."
+::= { snScalanceWStatsEntry 81 }
+
+snScalanceWStatsTxBytes OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An amount of bytes transmitted to the client."
+::= { snScalanceWStatsEntry 82 }
+
+snScalanceWStatsTxDataFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment for each successfully
+        transmitted to the client Data-MSDU."
+::= { snScalanceWStatsEntry 83 }
+
+snScalanceWStatsTxDataBytes OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An amount of bytes in data frames transmitted to the client."
+::= { snScalanceWStatsEntry 84 }
+
+snScalanceWStatsTxUnicast OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment only when the unicast MAC used
+        in the destination MAC address of a successfully
+        transmitted MSDU."
+::= { snScalanceWStatsEntry 85 }
+
+snScalanceWStatsTxMulticast OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment only when the multicast bit
+        is set in the destination MAC address of a successfully
+        transmitted MSDU.  When operating as a STA in an ESS, where
+        these frames are directed to the AP, this implies having
+        received an acknowledgment to all associated MPDUs."
+::= { snScalanceWStatsEntry 86 }
+
+snScalanceWStatsTxBroadcast OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment only when the broadcast MAC used
+        in the destination MAC address of a successfully
+        transmitted MSDU."
+::= { snScalanceWStatsEntry 87 }
+
+snScalanceWStatsTxMgmtFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment for each successfully transmitted Management-MSDU."
+::= { snScalanceWStatsEntry 88 }
+
+snScalanceWStatsTxCtrlFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter is not supported any more and permanently set to zero."
+::= { snScalanceWStatsEntry 89 }
+
+snScalanceWStatsTxErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A count of errors by the transmission of frames to the client."
+::= { snScalanceWStatsEntry 90 }
+
+snScalanceWStatsTxDroppedErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A count of dropped frames by the transmission of frames to the client."
+::= { snScalanceWStatsEntry 92 }
+
+snScalanceWStatsTxRtsErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment when a CTS is not received from the client in
+        response to an sent RTS."
+::= { snScalanceWStatsEntry 95 }
+
+snScalanceWStatsTxSignal OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Transmit Signal Strength from this client. Will be shown only in client mode."
+::= { snScalanceWStatsEntry 97 }
+
+snScalanceWStatsTxRate OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Transmit data rate, multiplied by 2."
+::= { snScalanceWStatsEntry 98 }
+
+snScalanceWStatsTxTotalRetries OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Total count of transmit retries (Hardware and software)."
+::= { snScalanceWStatsEntry 99 }
+
+-- --------------------------------------------------------------
+-- This group includes parameters for the snScalanceWDevices table.
+-- --------------------------------------------------------------
+
+snScalanceWDevicesTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF SnScalanceWDevicesEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Clients table."
+::= { snScalanceWDevices 5 }
+
+snScalanceWDevicesEntry OBJECT-TYPE
+    SYNTAX  SnScalanceWDevicesEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Clients table rows entries."
+    INDEX   { snScalanceWDevicesIndex }
+::= { snScalanceWDevicesTable 1 }
+
+SnScalanceWDevicesEntry ::=
+SEQUENCE
+{
+    snScalanceWDevicesIndex
+    INTEGER,
+    snScalanceWDevicesInterface
+    INTEGER,
+    snScalanceWDevicesMAC
+    OCTET STRING,
+    snScalanceWDevicesId
+    INTEGER,
+    snScalanceWDevicesState
+    INTEGER,
+    snScalanceWDevicesPwrSave
+    INTEGER,
+    snScalanceWDevicesWlanMode
+    INTEGER,
+    snScalanceWDevicesNonErpType
+    INTEGER,
+    snScalanceWDevicesWep
+    INTEGER,
+    snScalanceWDevicesCipherType
+    INTEGER,
+    snScalanceWDevicesAuthType
+    INTEGER,
+    snScalanceWDevicesAssocCount
+    Counter,
+    snScalanceWDevicesDisassocCount
+    Counter,
+    snScalanceWDevicesAuthCount
+    Counter,
+    snScalanceWDevicesDeauthCount
+    Counter,
+    snScalanceWDevicesRxAntenna
+    INTEGER,
+    snScalanceWDevicesRxFrames
+    Counter,
+    snScalanceWDevicesRxBytes
+    Counter,
+    snScalanceWDevicesRxDataFrames
+    Counter,
+    snScalanceWDevicesRxDataBytes
+    Counter,
+    snScalanceWDevicesRxUnicast
+    Counter,
+    snScalanceWDevicesRxMulticast
+    Counter,
+    snScalanceWDevicesRxBroadcast
+    Counter,
+    snScalanceWDevicesRxMgmtFrames
+    Counter,
+    snScalanceWDevicesRxCtrlFrames
+    Counter,
+    snScalanceWDevicesRxErrors
+    Counter,
+    snScalanceWDevicesRxAckErrors
+    Counter,
+    snScalanceWDevicesRxCrcErrors
+    Counter,
+    snScalanceWDevicesRxDiscardErrors
+    Counter,
+    snScalanceWDevicesRxDupFrameErrors
+    Counter,
+    snScalanceWDevicesRxWepXErrors
+    Counter,
+    snScalanceWDevicesRxSignal
+    INTEGER,
+    snScalanceWDevicesRxRate
+    INTEGER,
+    snScalanceWDevicesRxDecibelMilliwatts
+    INTEGER,
+    snScalanceWDevicesTxAntenna
+    INTEGER,
+    snScalanceWDevicesTxFrames
+    Counter,
+    snScalanceWDevicesTxBytes
+    Counter,
+    snScalanceWDevicesTxDataFrames
+    Counter,
+    snScalanceWDevicesTxDataBytes
+    Counter,
+    snScalanceWDevicesTxUnicast
+    Counter,
+    snScalanceWDevicesTxMulticast
+    Counter,
+    snScalanceWDevicesTxBroadcast
+    Counter,
+    snScalanceWDevicesTxMgmtFrames
+    Counter,
+    snScalanceWDevicesTxCtrlFrames
+    Counter,
+    snScalanceWDevicesTxErrors
+    Counter,
+    snScalanceWDevicesTxDiscardErrors
+    Counter,
+    snScalanceWDevicesTxDroppedErrors
+    Counter,
+    snScalanceWDevicesTxRtsErrors
+    Counter,
+    snScalanceWDevicesTxSignal
+    INTEGER,
+    snScalanceWDevicesTxRate
+    INTEGER
+}
+
+snScalanceWDevicesIndex OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the client."
+    DEFVAL { 0 }
+::= { snScalanceWDevicesEntry 1 }
+
+snScalanceWDevicesInterface OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        wireless1(1),
+        wireless2(2),
+        wireless3(3)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the wireless interface,
+        which the client is connected to."
+::= { snScalanceWDevicesEntry 2 }
+
+snScalanceWDevicesMAC OBJECT-TYPE
+    SYNTAX  OCTET STRING  (SIZE(0..6))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Mac address of the client."
+    DEFVAL { "" }
+::= { snScalanceWDevicesEntry 3 }
+
+snScalanceWDevicesId OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An association ID of the client."
+::= { snScalanceWDevicesEntry 4 }
+
+snScalanceWDevicesState OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        authenticated(1),
+        associated(2),
+        powersave(3),
+        adhoc(4),
+        joined(5),
+        ap-is-up(6),
+        ap-starting(7),
+        ap-is-down(8),
+        locked(9),
+        ap-connected(10)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A state of the client."
+::= { snScalanceWDevicesEntry 5 }
+
+snScalanceWDevicesPwrSave OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        on(1),
+        off(2),
+        not-supported(10)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This attribute shall specify the power management
+        mode of the STA. When set to 'off', it shall indicate
+        that the station is not in power-save mode. When set
+        to 'on', it shall indicate that the station is
+        in power-save mode. The power management mode is
+        transmitted in all frames according to the rules
+        in  7.1.3.1.7."
+::= { snScalanceWDevicesEntry 6 }
+
+snScalanceWDevicesWlanMode OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        mode-80211b(1),
+        mode-80211g(2),
+        mode-80211a(3),
+        mode-80211a-Turbo(4),
+        mode-80211g-Turbo(5)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Wlan mode of the client:
+        802.11b - 2.4GHz 11Mbps,
+        802.11g - 2.4GHz 54Mbps,
+        802.11a - 5GHz 54Mbps,
+        802.11a-Turbo - 5GHz 108Mbps,
+        802.11g-Turbo - 2.4Ghz 108Mbs."
+::= { snScalanceWDevicesEntry 7 }
+
+snScalanceWDevicesNonErpType OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        non-Erp(1),
+        none(2),
+        non-Erp-Protection(3)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Non-ERP mode of the station.
+        non-ERP: Non ERP STA present,
+        none: non ERP STA does not present,
+        non-Erp-Protection: when protection mechnism on."
+::= { snScalanceWDevicesEntry 8 }
+
+snScalanceWDevicesWep OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        yes(1),
+        no(2),
+        not-supported(10)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A variable as to whether encryption is to be used when communicating
+        with the client."
+::= { snScalanceWDevicesEntry 9 }
+
+snScalanceWDevicesCipherType OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        clear(1),
+        none(2),
+        wep(3),
+        aes(4),
+        tkip(5)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Only in AP mode. An encryption type."
+::= { snScalanceWDevicesEntry 10 }
+
+snScalanceWDevicesAuthType OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        open-system(1),
+        shared-key(2),
+        wpa(3),
+        wpa-psk(4),
+        radius-802-1x(5),
+        wpa2(6),
+        wpa2-psk(7),
+        wpa-auto(8),
+        wpa-auto-psk(9)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Only in AP mode. An authentication algorithm is currently used for the client:
+        open-system: no encryption,
+        shared-key: use WEP,
+        WPA: use WPA,
+        WPA-PSK: WPA with preshared key,
+        802.1x: use Radius,
+        WPA2: use WPA2,
+        WPA2-PSK: WPA2 with preshared key,
+        WPA-AUTO: WPA/WPA2,
+        WPA-AUTO-PSK: WPA/WPA2 with preshared key."
+::= { snScalanceWDevicesEntry 11 }
+
+snScalanceWDevicesAssocCount OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of received association-request MMPDUs from the client."
+::= { snScalanceWDevicesEntry 20 }
+
+snScalanceWDevicesDisassocCount OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of received disassociation frames from the client."
+::= { snScalanceWDevicesEntry 21 }
+
+snScalanceWDevicesAuthCount OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of received authentication frames from the client."
+::= { snScalanceWDevicesEntry 22 }
+
+snScalanceWDevicesDeauthCount OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of received deauthentication frames from the client."
+::= { snScalanceWDevicesEntry 23 }
+
+snScalanceWDevicesRxAntenna OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        antennaA(1),
+        antennaB(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Shows where the last frame was received."
+::= { snScalanceWDevicesEntry 40 }
+
+snScalanceWDevicesRxFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall be incremented for each successfully
+        received MPDU from the client."
+::= { snScalanceWDevicesEntry 41 }
+
+snScalanceWDevicesRxBytes OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An amount of bytes successfully received from this client."
+::= { snScalanceWDevicesEntry 42 }
+
+snScalanceWDevicesRxDataFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall be incremented for each successfully
+        received MPDU of type Data from the client."
+::= { snScalanceWDevicesEntry 43 }
+
+snScalanceWDevicesRxDataBytes OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An amount of data bytes successfully received from the client."
+::= { snScalanceWDevicesEntry 44 }
+
+snScalanceWDevicesRxUnicast OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment when a MSDU is received from the client
+        with the unicast MAC address."
+::= { snScalanceWDevicesEntry 45 }
+
+snScalanceWDevicesRxMulticast OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment when a MSDU is received from the client
+        with the multicast bit set in the destination MAC address."
+::= { snScalanceWDevicesEntry 46 }
+
+snScalanceWDevicesRxBroadcast OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment when a MSDU is received from the client
+        with the broadcast MAC address."
+::= { snScalanceWDevicesEntry 47 }
+
+snScalanceWDevicesRxMgmtFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall be incremented for each successfully
+        received MPDU of type Management from the client."
+::= { snScalanceWDevicesEntry 48 }
+
+snScalanceWDevicesRxCtrlFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall be incremented for each successfully
+        received Control Frame from the client."
+::= { snScalanceWDevicesEntry 49 }
+
+snScalanceWDevicesRxErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Count of a receiving errors in communication with the client."
+::= { snScalanceWDevicesEntry 50 }
+
+snScalanceWDevicesRxAckErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of an acknowledge errors in communication with the client."
+::= { snScalanceWDevicesEntry 51 }
+
+snScalanceWDevicesRxCrcErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of a CRC errors in communication with the client."
+::= { snScalanceWDevicesEntry 52 }
+
+snScalanceWDevicesRxDiscardErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Count of discarded frames from the client."
+::= { snScalanceWDevicesEntry 53 }
+
+snScalanceWDevicesRxDupFrameErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment when a frame from the clietn is received
+        that the Sequence Control field indicates is a duplicate."
+::= { snScalanceWDevicesEntry 55 }
+
+snScalanceWDevicesRxWepXErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment when a frame from the client is received with
+        the WEP subfield of the Frame Control field set to one and the
+        WEPOn value for the key mapped to the TA's MAC address
+        indicates that the frame should not have been encrypted or
+        that frame is discarded due to the receiving STA not
+        implementing the privacy option."
+::= { snScalanceWDevicesEntry 58 }
+
+
+snScalanceWDevicesRxSignal OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The current signal level (in percent) from this station."
+::= { snScalanceWDevicesEntry 60 }
+
+snScalanceWDevicesRxRate OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Bit rate of the connection between the client and AP, multiplied by 2."
+::= { snScalanceWDevicesEntry 61 }
+
+snScalanceWDevicesRxDecibelMilliwatts OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The current signal level (in dBm) from this station."
+::= { snScalanceWDevicesEntry 62 }
+
+snScalanceWDevicesTxAntenna OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        antennaA(1),
+        antennaB(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A transmit antenna."
+::= { snScalanceWDevicesEntry 80 }
+
+snScalanceWDevicesTxFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment for each successfully transmitted to the client MSDU."
+::= { snScalanceWDevicesEntry 81 }
+
+snScalanceWDevicesTxBytes OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An amount of bytes transmitted to the client."
+::= { snScalanceWDevicesEntry 82 }
+
+snScalanceWDevicesTxDataFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment for each successfully
+        transmitted to the client Data-MSDU."
+::= { snScalanceWDevicesEntry 83 }
+
+snScalanceWDevicesTxDataBytes OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An amount of bytes in data frames transmitted to the client."
+::= { snScalanceWDevicesEntry 84 }
+
+snScalanceWDevicesTxUnicast OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment only when the unicast MAC used
+        in the destination MAC address of a successfully
+        transmitted MSDU."
+::= { snScalanceWDevicesEntry 85 }
+
+snScalanceWDevicesTxMulticast OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment only when the multicast bit
+        is set in the destination MAC address of a successfully
+        transmitted MSDU.  When operating as a STA in an ESS, where
+        these frames are directed to the AP, this implies having
+        received an acknowledgment to all associated MPDUs."
+::= { snScalanceWDevicesEntry 86 }
+
+snScalanceWDevicesTxBroadcast OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment only when the broadcast MAC used
+        in the destination MAC address of a successfully
+        transmitted MSDU."
+::= { snScalanceWDevicesEntry 87 }
+
+snScalanceWDevicesTxMgmtFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment for each successfully transmitted Management-MSDU."
+::= { snScalanceWDevicesEntry 88 }
+
+snScalanceWDevicesTxCtrlFrames OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter is not supported any more and permanently set to zero."
+::= { snScalanceWDevicesEntry 89 }
+
+snScalanceWDevicesTxErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A count of errors by the transmission of frames to the client."
+::= { snScalanceWDevicesEntry 90 }
+
+snScalanceWDevicesTxDiscardErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A count of discarded frames by the transmission of frames to the client."
+::= { snScalanceWDevicesEntry 91 }
+
+snScalanceWDevicesTxDroppedErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A count of dropped frames by the transmission of frames to the client."
+::= { snScalanceWDevicesEntry 92 }
+
+snScalanceWDevicesTxRtsErrors OBJECT-TYPE
+    SYNTAX Counter
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This counter shall increment when a CTS is not received from the client in
+        response to an sent RTS."
+::= { snScalanceWDevicesEntry 95 }
+
+snScalanceWDevicesTxSignal OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Transmit Signal Strength."
+::= { snScalanceWDevicesEntry 97 }
+
+snScalanceWDevicesTxRate OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Transmit data rate, multiplied by 2."
+::= { snScalanceWDevicesEntry 98 }
+-- --------------------------------------------------------------
+-- This group includes parameters for the snScalanceWScan table.
+-- --------------------------------------------------------------
+
+snScalanceWScanTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF SnScalanceWScanEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Scan table for ECM mode."
+::= { snScalanceWScan 5 }
+
+snScalanceWScanEntry OBJECT-TYPE
+    SYNTAX  SnScalanceWScanEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Scan table rows entries."
+    INDEX   { snScalanceWScanIndex }
+::= { snScalanceWScanTable 1 }
+
+SnScalanceWScanEntry ::=
+SEQUENCE
+{
+    snScalanceWScanIndex
+    INTEGER,
+    snScalanceWScanInterface
+    INTEGER,
+    snScalanceWScanMAC
+    OCTET STRING,
+    snScalanceWScanState
+    INTEGER,
+    snScalanceWScanWep
+    INTEGER,
+    snScalanceWScanChannel
+    INTEGER,
+    snScalanceWScanSSID
+    OCTET STRING,
+    snScalanceWScanType
+    INTEGER,
+    snScalanceWScanCanConnect
+    INTEGER,
+    snScalanceWScanRxSignal
+    INTEGER,
+    snScalanceWScanRxDecibelMilliwatts
+    INTEGER,
+    snScalanceWScanTxSignal
+    INTEGER
+}
+
+snScalanceWScanIndex OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the client."
+    DEFVAL { 0 }
+::= { snScalanceWScanEntry 1 }
+
+snScalanceWScanInterface OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        wireless1(1),
+        wireless2(2),
+        wireless3(3)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the wireless interface,
+        which the client is connected to."
+::= { snScalanceWScanEntry 2 }
+
+snScalanceWScanMAC OBJECT-TYPE
+    SYNTAX  OCTET STRING  (SIZE(0..6))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Mac address of the client."
+    DEFVAL { "" }
+::= { snScalanceWScanEntry 3 }
+
+
+snScalanceWScanState OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        authenticated(1),
+        associated(2),
+        powersave(3),
+        adhoc(4),
+        joined(5),
+        ap-is-up(6),
+        ap-starting(7),
+        ap-is-down(8),
+        locked(9),
+        ap-connected(10)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A state of the client."
+::= { snScalanceWScanEntry 5 }
+
+snScalanceWScanWep OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        yes(1),
+        no(2),
+        not-supported(10)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A variable as to whether encryption is to be used when communicating
+        with the client."
+::= { snScalanceWScanEntry 9 }
+
+snScalanceWScanChannel OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Channel of the scanned station or AP."
+::= { snScalanceWScanEntry 13 }
+
+snScalanceWScanSSID OBJECT-TYPE
+    SYNTAX  OCTET STRING  (SIZE(0..32))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "SSID of the scanned station or AP."
+::= { snScalanceWScanEntry 17 }
+
+snScalanceWScanType OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        unknown(0),
+        ap(1),
+        ad-hoc(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Type of the scanned station or AP."
+::= { snScalanceWScanEntry 18 }
+
+snScalanceWScanCanConnect OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        yes(1),
+        no(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Shows if the SCALANCE W can connect to this device."
+::= { snScalanceWScanEntry 19 }
+
+snScalanceWScanRxSignal OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The current signal level (in percent) from this station."
+::= { snScalanceWScanEntry 60 }
+
+snScalanceWScanRxDecibelMilliwatts OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "The current signal level (in dBm) from this station."
+::= { snScalanceWScanEntry 62 }
+
+snScalanceWScanTxSignal OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Transmit Signal Strength."
+::= { snScalanceWScanEntry 97 }
+
+-- --------------------------------------------------------------
+-- This group includes parameters for the snScalanceWAcl.
+-- --------------------------------------------------------------
+
+snScalanceWAclWlan1Enabled OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled(1),
+        disabled(0),
+        strict(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable disable ACL for Wireless Interface 1."
+    DEFVAL {disabled}
+::= { snScalanceWAcl 1 }
+
+snScalanceWAclWlan2Enabled OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled(1),
+        disabled(0),
+        strict(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable disable ACL for Wireless Interface 2."
+    DEFVAL {disabled}
+::= { snScalanceWAcl 2 }
+
+snScalanceWAclDeleteControl OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        deleteAll(0)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Delete entry with index, that was written in this variable"
+::= { snScalanceWAcl 6 }
+
+snScalanceWAclWlan3Enabled OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled(1),
+        disabled(0),
+        strict(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable disable ACL for Wireless Interface 3."
+    DEFVAL {disabled}
+::= { snScalanceWAcl 7 }
+
+-- --------------------------------------------------------------
+-- This group includes parameters for the snScalanceWAcl table.
+-- --------------------------------------------------------------
+
+snScalanceWAclTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF SnScalanceWAclEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Access Control List table."
+::= { snScalanceWAcl 3 }
+
+snScalanceWAclEntry OBJECT-TYPE
+    SYNTAX  SnScalanceWAclEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Access Control List table rows entries."
+    INDEX   { snScalanceWAclIndex }
+::= { snScalanceWAclTable 1 }
+
+SnScalanceWAclEntry ::=
+SEQUENCE
+{
+    snScalanceWAclIndex
+    INTEGER,
+    snScalanceWAclSelected
+    INTEGER,
+    snScalanceWAclInterface
+    INTEGER,
+    snScalanceWAclMAC
+    OCTET STRING,
+    snScalanceWAclPermission
+    INTEGER,
+    snScalanceWAclKeyIndex
+    INTEGER,
+    snScalanceWAclDescription
+    OCTET STRING
+}
+
+snScalanceWAclIndex OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the client."
+    DEFVAL { 0 }
+::= { snScalanceWAclEntry 1 }
+
+snScalanceWAclSelected OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable/disable entry, by default enabled."
+    DEFVAL { 1 }
+::= { snScalanceWAclEntry 2 }
+
+snScalanceWAclInterface OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        wireless1(1),
+        wireless2(2),
+        wireless3(3)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the wireless interface,
+        which the client is connected to."
+::= { snScalanceWAclEntry 3 }
+
+
+
+snScalanceWAclMAC OBJECT-TYPE
+    SYNTAX  OCTET STRING  (SIZE(0..6))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "A Mac address of the client."
+    DEFVAL { "" }
+::= { snScalanceWAclEntry 4 }
+
+snScalanceWAclPermission OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        allow(0),
+        deny(2),
+        defaultKey(4),
+        privateKey(8)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Type of permission for this entry."
+::= { snScalanceWAclEntry 5 }
+
+snScalanceWAclKeyIndex OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Key index, if snScalanceWAclPermission is privateKey(8)."
+::= { snScalanceWAclEntry 6 }
+
+snScalanceWAclDescription OBJECT-TYPE
+    SYNTAX  OCTET STRING  (SIZE(0..32))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "A Description of the client."
+    DEFVAL { "" }
+::= { snScalanceWAclEntry 7 }
+
+
+-- -------------------------------------------------------------
+-- Groups in snScalanceWAclAdd
+-- -------------------------------------------------------------
+
+snScalanceWAclAdd        OBJECT IDENTIFIER ::= { snScalanceWAcl 4 }
+
+snScalanceWAclAddControl OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        addNew(1)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Control variable. If set this variable to addNew(1) all values from snScalanceWAclAddInterface,
+        snScalanceWAclAddMAC, snScalanceWAclAddPermission, snScalanceWAclAddKeyIndex will be add to ACL list."
+::= { snScalanceWAclAdd 1 }
+
+snScalanceWAclAddSelected OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable/disable entry, by default enabled"
+    DEFVAL { 1 }
+::= { snScalanceWAclAdd 2 }
+
+snScalanceWAclAddInterface OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        wireless1(1),
+        wireless2(2),
+        wireless3(3)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the wireless interface,
+        which the client is connected to."
+::= { snScalanceWAclAdd 3 }
+
+snScalanceWAclAddMAC OBJECT-TYPE
+    SYNTAX  OCTET STRING  (SIZE(0..6))
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Mac address of the client."
+    DEFVAL { "" }
+::= { snScalanceWAclAdd 4 }
+
+snScalanceWAclAddPermission OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        allow(0),
+        deny(2),
+        defaultKey(4),
+        privateKey(8)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Type of thepermission for this entry."
+::= { snScalanceWAclAdd 5 }
+
+snScalanceWAclAddKeyIndex OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Key index, if snScalanceWAclAddPermission is privateKey(8)."
+::= { snScalanceWAclAdd 6 }
+
+snScalanceWAclAddDescription OBJECT-TYPE
+    SYNTAX  OCTET STRING  (SIZE(0..32))
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Description of the client."
+    DEFVAL { "" }
+::= { snScalanceWAclAdd 7 }
+
+
+-- --------------------------------------------------------------
+-- This group includes parameters for the snScalanceWAccess.
+-- --------------------------------------------------------------
+
+snScalanceWAccessTableEnabled OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable disable the IP Address checking by managing of SCALANCE W."
+    DEFVAL {disabled}
+::= { snScalanceWAccess 1 }
+
+snScalanceWAccessMode OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        accessed(1),
+        denied(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Mode of the table: All IP Addresses in the list will be accessed or denied"
+    DEFVAL {accessed}
+::= { snScalanceWAccess 2 }
+
+snScalanceWAccessDeleteControl OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        deleteAll(0)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Delete the entry with the index, that was written in this variable"
+::= { snScalanceWAccess 5 }
+
+-- --------------------------------------------------------------
+-- This group includes parameters for the snScalanceWAccess table.
+-- --------------------------------------------------------------
+
+snScalanceWAccessTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF SnScalanceWAccessEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Table with the IP-Addresses."
+::= { snScalanceWAccess 3 }
+
+snScalanceWAccessEntry OBJECT-TYPE
+    SYNTAX  SnScalanceWAccessEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "An Access Check by IP Addresses table rows entries."
+    INDEX   { snScalanceWAccessIndex }
+::= { snScalanceWAccessTable 1 }
+
+SnScalanceWAccessEntry ::=
+SEQUENCE
+{
+    snScalanceWAccessIndex
+    INTEGER,
+    snScalanceWAccessSelected
+    INTEGER,
+    snScalanceWAccessIpAddress
+    IpAddress
+}
+
+snScalanceWAccessIndex OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the IP address."
+    DEFVAL { 0 }
+::= { snScalanceWAccessEntry 1 }
+
+snScalanceWAccessSelected OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable/disable entry, by default enabled."
+    DEFVAL { 1 }
+::= { snScalanceWAccessEntry 2 }
+
+snScalanceWAccessIpAddress OBJECT-TYPE
+    SYNTAX  IpAddress
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "A IP address of the management station."
+::= { snScalanceWAccessEntry 3 }
+
+-- -------------------------------------------------------------
+-- Groups in snScalanceWAccessAdd
+-- -------------------------------------------------------------
+
+snScalanceWAccessAdd         OBJECT IDENTIFIER ::= { snScalanceWAccess 4 }
+
+snScalanceWAccessAddControl OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        addNew(1)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Control variable. If set this variable to addNew(1) all values from
+        snScalanceWAccessAddIpAddress, snScalanceWAccessAddSelected will be add to IP Access list."
+::= { snScalanceWAccessAdd 1 }
+
+snScalanceWAccessAddSelected OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable/disable entry, by default enabled"
+    DEFVAL { 1 }
+::= { snScalanceWAccessAdd 2 }
+
+snScalanceWAccessAddIpAddress OBJECT-TYPE
+    SYNTAX IpAddress
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A IP address of the management station."
+::= { snScalanceWAccessAdd 3 }
+
+-- -------------------------------------------------------------
+-- Groups in SN-SCALANCEW-VIRTUALAP
+-- -------------------------------------------------------------
+
+snScalanceWVirtualApTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF SnScalanceWVirtualApEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Virtual Access Points table for WLAN interfaces."
+::= { snScalanceWVirtualAp 1 }
+
+snScalanceWVirtualApEntry OBJECT-TYPE
+    SYNTAX  SnScalanceWVirtualApEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "Virtual Access Points table row entries."
+    INDEX   { snScalanceWVirtualApIndex }
+::= { snScalanceWVirtualApTable 1 }
+
+SnScalanceWVirtualApEntry ::=
+SEQUENCE
+{
+    snScalanceWVirtualApIndex
+    INTEGER,
+    snScalanceWVirtualApState
+    INTEGER,
+    snScalanceWVirtualApMAC
+    OCTET STRING,
+    snScalanceWVirtualApInterface
+    INTEGER,
+    snScalanceWVirtualApBSSId
+    INTEGER,
+    snScalanceWVirtualApWep
+    INTEGER,
+    snScalanceWVirtualApCipherType
+    INTEGER,
+    snScalanceWVirtualApAuthType
+    INTEGER,
+    snScalanceWVirtualApBSSType
+    INTEGER,
+    snScalanceWVirtualApSSID
+    OCTET STRING,
+    snScalanceWVirtualApVlanEnabled
+    INTEGER,
+    snScalanceWVirtualApVlanUserPriority
+    INTEGER,
+    snScalanceWVirtualApVlanPortId
+    INTEGER,
+    snScalanceWVirtualApVlanMembershipType
+    INTEGER,
+    snScalanceWVirtualApAssociatedClients
+    INTEGER,
+    snScalanceWVirtualApSleepingClients
+    INTEGER
+}
+
+snScalanceWVirtualApIndex OBJECT-TYPE
+    SYNTAX  INTEGER (0..15)
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the Virtual Access Point interface."
+    DEFVAL { 0 }
+::= { snScalanceWVirtualApEntry 1 }
+
+snScalanceWVirtualApState OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        unknown(0),
+        authenticated(1),
+        associated(2),
+        powersave(3),
+        adhoc(4),
+        joined(5),
+        vap-is-up(6),
+        vap-starting(7),
+        vap-is-down(8),
+        locked(9),
+        vap-connected(10)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A state of the Virtual Access Point."
+    DEFVAL { unknown }
+::= { snScalanceWVirtualApEntry 2 }
+
+snScalanceWVirtualApMAC OBJECT-TYPE
+    SYNTAX  OCTET STRING  (SIZE(0..6))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Mac address of the Virtual Access Point."
+    DEFVAL { "" }
+::= { snScalanceWVirtualApEntry 3 }
+
+snScalanceWVirtualApInterface OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        wireless1(1),
+        wireless2(2),
+        wireless3(3)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the physical wireless interface,
+        which the Virtual Access Point resides on."
+    DEFVAL { wireless1 }
+::= { snScalanceWVirtualApEntry 4 }
+
+snScalanceWVirtualApBSSId OBJECT-TYPE
+    SYNTAX  INTEGER (1..8)
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the BSS which the Virtual Access Point is bound to."
+    DEFVAL { 1 }
+::= { snScalanceWVirtualApEntry 5 }
+
+snScalanceWVirtualApWep OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        yes(1),
+        no(2),
+        not-supported(10)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A variable as to whether encryption is to be used when communicating
+        with the client."
+::= { snScalanceWVirtualApEntry 9 }
+
+snScalanceWVirtualApCipherType OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        clear(1),
+        none(2),
+        wep(3),
+        aes(4),
+        tkip(5),
+        auto(6)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An encryption type. If 'auto', then the cipher will be set by server."
+::= { snScalanceWVirtualApEntry 10 }
+
+snScalanceWVirtualApAuthType OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        open-system(1),
+        shared-key(2),
+        wpa(3),
+        wpa-psk(4),
+        radius-802-1x(5),
+        wpa2(6),
+        wpa2-psk(7),
+        wpa-auto(8),
+        wpa-auto-psk(9)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An authentication algorithm is currently used for the client:
+        open-system: no encryption,
+        shared-key: use WEP,
+        WPA: use WPA,
+        WPA-PSK: WPA with preshared key,
+        802.1x: use Radius,
+        WPA2: use WPA2,
+        WPA2-PSK: WPA2 with preshared key,
+        WPA-AUTO: WPA/WPA2,
+        WPA-AUTO-PSK: WPA/WPA2 with preshared key."
+::= { snScalanceWVirtualApEntry 11 }
+
+snScalanceWVirtualApBSSType OBJECT-TYPE
+    SYNTAX INTEGER
+    {
+        unknown(0),
+        infrastructure(1),
+        independent(2),
+        any(3)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Supported only in RAP mode."
+::= { snScalanceWVirtualApEntry 12 }
+
+snScalanceWVirtualApSSID OBJECT-TYPE
+    SYNTAX  OCTET STRING  (SIZE(0..32))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Current SSID of Virtual Access Point. Supported only in RAP mode."
+::= { snScalanceWVirtualApEntry 17 }
+
+snScalanceWVirtualApVlanEnabled OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled(1),
+        disabled(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable/disable VLAN support for the Virtual Access Point. Default is disabled."
+    DEFVAL { disabled }
+::= { snScalanceWVirtualApEntry 20 }
+
+snScalanceWVirtualApVlanUserPriority OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        best-effort(0),
+        background(1),
+        spare(2),
+        excellent-effort(3),
+        controlled-load(4),
+        video(5),
+        voice(6),
+        network-control(7)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "User Priority for the Virtual Access Point. Default is Best Effort.
+        best-effort: Best Effort (BE),
+        background: Background (BK),
+        spare: Spare (not used yet),
+        excellent-effort: Excellent Effort (EE),
+        controlled-load: Controlled Load (CL),
+        video: Video (VI) - < 100 ms latency and jitter',
+        voice: Voice (VO) - < 10 ms latency and jitter',
+        network-control: Network Control (NC)."
+    DEFVAL { best-effort }
+::= { snScalanceWVirtualApEntry 21 }
+
+snScalanceWVirtualApVlanPortId OBJECT-TYPE
+    SYNTAX  INTEGER (0..4094)
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A Port VLAN ID for the Virtual Access Point."
+    DEFVAL { 0 }
+::= { snScalanceWVirtualApEntry 22 }
+
+snScalanceWVirtualApVlanMembershipType OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        all(1),
+        specific(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Select the VLAN membership type of the Virtual Access Point. Default is all.
+        all: VAP is member of all VLANs configured,
+        specific: VAP is member of specific VLANs (up to 8) only."
+    DEFVAL { specific }
+::= { snScalanceWVirtualApEntry 23 }
+
+snScalanceWVirtualApVlans OBJECT IDENTIFIER ::= { snScalanceWVirtualAp 100 }
+
+-- -------------------------------------------------------------
+-- Groups in SN-PRIVATE-MIB VLAN MEMBERS Definition
+-- -------------------------------------------------------------
+
+snScalanceWVlanMembersTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF SnScalanceWVlanMembersEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "VLAN members table for Virtual Access Points."
+::= { snScalanceWVirtualApVlans 1 }
+
+snScalanceWVlanMembersEntry OBJECT-TYPE
+    SYNTAX  SnScalanceWVlanMembersEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "VLAN members table row entries."
+    INDEX   { snScalanceWVirtualApIndex, snScalanceWVlanMembersIndex }
+::= { snScalanceWVlanMembersTable 1 }
+
+SnScalanceWVlanMembersEntry ::=
+SEQUENCE
+{
+    snScalanceWVlanMembersIndex
+    INTEGER,
+    snScalanceWVlanMembersInterface
+    INTEGER,
+    snScalanceWVlanMembersBSSId
+    INTEGER,
+    snScalanceWVlanMembersVlanId
+    INTEGER,
+    snScalanceWVlanMembersSlotId
+    INTEGER,
+    snScalanceWVlanMembersControl
+    INTEGER
+}
+
+snScalanceWVlanMembersIndex OBJECT-TYPE
+    SYNTAX  INTEGER (1..128)
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the membership type entry."
+    DEFVAL { 1 }
+::= { snScalanceWVlanMembersEntry 1 }
+
+snScalanceWVlanMembersInterface OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        wireless1(1),
+        wireless2(2),
+        wireless3(3)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the physical wireless interface,
+        which the Virtual Access Point resides on."
+    DEFVAL { wireless1 }
+::= { snScalanceWVlanMembersEntry 2 }
+
+snScalanceWVlanMembersBSSId OBJECT-TYPE
+    SYNTAX  INTEGER (1..8)
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the BSS which the Virtual Access Point is bound to."
+    DEFVAL { 1 }
+::= { snScalanceWVlanMembersEntry 3 }
+
+snScalanceWVlanMembersVlanId OBJECT-TYPE
+    SYNTAX  INTEGER  (-1..4094)
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A VLAN ID for the membership type entry. '-1' means 'ignore'."
+    DEFVAL { -1 }
+::= { snScalanceWVlanMembersEntry 4 }
+
+snScalanceWVlanMembersSlotId OBJECT-TYPE
+    SYNTAX  INTEGER (1..8)
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A slot ID where the VLAN ID should be added to or deleted from."
+    DEFVAL { 1 }
+::= { snScalanceWVlanMembersEntry 5 }
+
+snScalanceWVlanMembersControl OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        add(1),
+        del(2)
+    }
+    ACCESS  write-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A control variable. Setting this variable to add will add the
+        Vlan ID given in snScalanceWVlanMembersVlanId at the slot ID
+        given in snScalanceWVlanMembersSlotId to the Virtual Access
+        Point designated by snScalanceWVlanMembersInterface and
+        snScalanceWVlanMembersBSSId. Likewise, setting this variable
+        to del will delete the appropriate entry."
+    DEFVAL { add }
+::= { snScalanceWVlanMembersEntry 6 }
+
+-- Back to the general Virtual Access Point definitions.
+
+snScalanceWVirtualApAssociatedClients OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A count of clients associated with the Virtual Access Point."
+    DEFVAL { 0 }
+::= { snScalanceWVirtualApEntry 70 }
+
+snScalanceWVirtualApSleepingClients OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "A count of sleeping clients associated with the Virtual Access Point."
+    DEFVAL { 0 }
+::= { snScalanceWVirtualApEntry 71 }
+
+-- -------------------------------------------------------------
+-- Groups in SN-SCALANCEW-IPCF
+-- -------------------------------------------------------------
+
+snScalanceWiPCFTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF SnScalanceWiPCFEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "iPCF table for WLAN interfaces."
+::= { snScalanceWiPCF 1 }
+
+snScalanceWiPCFEntry OBJECT-TYPE
+    SYNTAX  SnScalanceWiPCFEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+        "iPCF table row entries."
+    INDEX   { snScalanceWiPCFIfIndex }
+::= { snScalanceWiPCFTable 1 }
+
+SnScalanceWiPCFEntry ::=
+SEQUENCE
+{
+    snScalanceWiPCFIfIndex
+    INTEGER,
+    snScalanceWiPCFEnable
+    INTEGER,
+    snScalanceWiPCFStrongAesCcmEnc
+    INTEGER,
+    snScalanceWiPCFPnioSupport
+    INTEGER,
+    snScalanceWiPCFPnioUpdateTime
+    INTEGER,
+    snScalanceWiPCFAntennaPattern
+    INTEGER
+}
+
+snScalanceWiPCFIfIndex OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        wireless1(1),
+        wireless2(2),
+        wireless3(3)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "An index of the WLAN interface."
+    DEFVAL { 1 }
+::= { snScalanceWiPCFEntry 1 }
+
+snScalanceWiPCFEnable OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled       (1),
+        disabled      (2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable or disable iPCF."
+::= { snScalanceWiPCFEntry 2 }
+
+snScalanceWiPCFStrongAesCcmEnc OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled       (1),
+        disabled      (2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable or disable Strong AES-CCM encryption for iPCF.
+        A 128-bit WEP key must be defined as default key."
+::= { snScalanceWiPCFEntry 3 }
+
+snScalanceWiPCFPnioSupport OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        enabled       (1),
+        disabled      (2),
+        not-supported (10)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enable or disable PNIO support for iPCF. Only supported in AP mode."
+::= { snScalanceWiPCFEntry 4 }
+
+snScalanceWiPCFPnioUpdateTime OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        interval-4ms   (4),
+        interval-8ms   (8),
+        interval-16ms  (16),
+        interval-32ms  (32),
+        interval-64ms  (64),
+        interval-128ms (128),
+        interval-256ms (256),
+        interval-512ms (512),
+        not-supported  (0)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "PNIO update time interval. Only supported in AP mode."
+::= { snScalanceWiPCFEntry 5 }
+
+snScalanceWiPCFAntennaPattern OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        leaky-or-directional   (1),
+        omni                   (2),
+        not-supported          (10)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Select the antenna type attached to the AP. The setting on
+        the AP also affects the scan behavior of the associated
+        clients. Only supported in AP mode."
+::= { snScalanceWiPCFEntry 6 }
+
+-- -------------------------------------------------------------
+-- Groups in SN-PRIVATE-MIB TRAPS Definition
+-- -------------------------------------------------------------
+
+snScalanceWAuthFailure TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWAuthFailureValue }
+    DESCRIPTION
+        "Authentication failure in WEB, CLI or if the IP Address is not in the Access Filter ."
+::= 4
+
+snScalanceWPowerLineDown TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWChangedPowerLine }
+    DESCRIPTION
+        "Power down on line <L1-supply/PoE>."
+::= 31
+
+snScalanceWPowerLineUp TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWChangedPowerLine }
+    DESCRIPTION
+        "Power up on line <L1-supply/PoE>."
+::= 32
+
+snScalanceWFault TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWFaultValue }
+    DESCRIPTION
+        "Device changed fault state."
+::= 41
+
+snScalanceWIQOS TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWIQOSValue }
+    DESCRIPTION
+        "iQoS event has risen."
+::= 51
+
+snScalanceWRedundancy TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWRedundancyValue, snScalanceWRedundancyState }
+    DESCRIPTION
+        "If some redundancy event occurs, this event will be sent."
+::= 53
+
+snScalanceWLinkCheckOff TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWLinkCheckValue }
+    DESCRIPTION
+        "Link Check for some MAC is down."
+::= 81
+
+snScalanceWLinkCheckOn TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWLinkCheckValue }
+    DESCRIPTION
+        "Link Check for some MAC is up."
+::= 82
+
+snScalanceWClientAssociated TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWClientAssocValue }
+    DESCRIPTION
+        "Client was successfully associated with AP."
+::= 85
+
+snScalanceWClientDisassociated TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWClientDisassocValue }
+    DESCRIPTION
+        "Client was disassociated with AP."
+::= 86
+
+snScalanceWIpAliveOff TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWIpAliveValue }
+    DESCRIPTION
+        "Timeout or some error on the IP-Alive observed connection."
+::= 91
+
+snScalanceWIpAliveOn TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWIpAliveValue }
+    DESCRIPTION
+        "IP-Alive observed connection is OK."
+::= 92
+
+snScalanceWOverlapAP TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWOverlapAPValue }
+    DESCRIPTION
+        "Overlap-AP found."
+::= 101
+
+snScalanceWiPCFPNIOmaxSTAs TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWPNIOValue }
+    DESCRIPTION
+        "iPCF Mode: Max. PNIO Cycle Time exceeded."
+::= 111
+
+snScalanceWiPCFPNIOCycleTime TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWPNIOValue }
+    DESCRIPTION
+        "iPCF Mode: Number of Wireless Clients too big for the Cycle time."
+::= 112
+
+snScalanceWiPCFPNIOCPollSize TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWPNIOValue }
+    DESCRIPTION
+        "iPCF Mode: Maximum size of PNIO cyclic poll frame exceeded."
+::= 113
+
+snScalanceWForcedRoamingVapStateChanged TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWVirtualApIndex, snScalanceWVirtualApState}
+    DESCRIPTION
+        "Forced Roaming on IP down: State of Virtual AP changed"
+::= 121
+
+snScalanceWWDS TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWWDSValue }
+    DESCRIPTION
+        "WDS event has risen."
+::= 131
+
+snScalanceWRadarDetect TRAP-TYPE
+    ENTERPRISE  snScalanceWCommon
+    VARIABLES { snScalanceWRadarDetectValue }
+    DESCRIPTION
+        "Radar interference detected on current channel."
+::= 141
+
+-- -------------------------------------------------------------
+-- Groups in SN-PRIVATE-MIB
+-- -------------------------------------------------------------
+snLastObject     OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+        last-object(1)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "This object is defined as a dummy object. The object
+        is used to indicate that no other objects can appear
+        after it in this private MIB.
+        The only purpose of this object is for MIB browsers
+        that need a valid object at the end of a private MIB."
+    DEFVAL { last-object }
+::= { iScalanceWMib 999 }
+
+END
+

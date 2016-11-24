@@ -1,0 +1,1731 @@
+-- ----------------------------------------------------------------------
+-- snAsi.mib
+-- Siemens  SIMATIC NET 
+-- AS-i LINK Familie Private MIB
+-- Copyright (c) 2004-2009 Siemens AG
+-- ----------------------------------------------------------------------
+--
+-- MIB Module :   SN-ASI-LINK-PRIV-MIB
+--
+-- Revision   :   V1.0.2
+-- Date       :   2009/03/05 
+--
+-- ----------------------------------------------------------------------
+
+SN-ASI-LINK-PRIV-MIB DEFINITIONS ::= BEGIN
+
+  IMPORTS
+          enterprises,IpAddress,
+          TimeTicks,Counter FROM RFC1155-SMI
+    
+--    ifIndex FROM RFC1213-MIB
+
+    TRAP-TYPE FROM RFC-1215
+    
+          OBJECT-TYPE FROM RFC-1212;
+
+siemensAD           OBJECT IDENTIFIER ::= { enterprises 4196 }
+adProductMibs       OBJECT IDENTIFIER ::= { siemensAD 1 }
+simaticNet          OBJECT IDENTIFIER ::= { adProductMibs 1 }
+iLinks              OBJECT IDENTIFIER ::= { simaticNet 8 } 
+iASILink            OBJECT IDENTIFIER ::= { iLinks 3 } 
+
+-- -------------------------------------------------------------
+-- SIMATIC NET ASI LINK Products
+-- These objects are used as sysObjectID of the products.
+-- -------------------------------------------------------------
+
+snDPAsiLinkDualMaster OBJECT IDENTIFIER ::= { iASILink 1 }
+snDPAsiLinkSingleMaster OBJECT IDENTIFIER ::= { iASILink 2 }
+snIEAsiLinkDualMaster OBJECT IDENTIFIER ::= { iASILink 3 }
+snIEAsiLinkSingleMaster OBJECT IDENTIFIER ::= { iASILink 4 }
+
+-- ************************************************************
+-- SIMATIC NET ASI LINK Private MIB
+-- ************************************************************
+
+-- ------------------------------------------------------------
+-- SIMATIC NET ASI LINK Object Identifier Definition
+-- ------------------------------------------------------------
+iAsiLinkMib       OBJECT IDENTIFIER ::= { iASILink 100 }
+
+
+-- -------------------------------------------------------------
+-- Groups in SN-PRIVATE-MIB
+-- -------------------------------------------------------------
+-- --------------------------------------------------------------
+-- textual conventions
+-- --------------------------------------------------------------
+
+          MacAddress ::= OCTET STRING (SIZE (6))    -- a 6 octet address
+                                                    -- in the
+                                                    -- "canonical"
+                                                    -- order
+          -- defined by IEEE 802.1a, i.e., as if it were transmitted
+          -- least significant bit first, even though 802.5 (in
+          -- contrast to other n802.x protocols) requires MAC
+          -- addresses to be transmitted most significant bit first.
+          --
+          -- 16-bit addresses, if needed, are represented by setting
+          -- their upper 4 octets to all 0's, i.e., AAFF would be
+          -- represented as 00000000AAFF.
+
+-- -------------------------------------------------------------
+-- SIMATIC NET ASI LINK Objects
+-- -------------------------------------------------------------
+snCommon             OBJECT IDENTIFIER ::= { iAsiLinkMib 1 }
+snProductSpecific    OBJECT IDENTIFIER ::= { iAsiLinkMib 2 }
+
+-- -------------------------------------------------------------
+-- SIMATIC NET ASI LINK Common Objects
+-- -------------------------------------------------------------
+snDownload           OBJECT IDENTIFIER ::= { snCommon 5  }
+snNvLog              OBJECT IDENTIFIER ::= { snCommon 6  }
+snTrapInfo           OBJECT IDENTIFIER ::= { snCommon 7  }
+snGen                OBJECT IDENTIFIER ::= { snCommon 8  }
+snTcpIp              OBJECT IDENTIFIER ::= { snCommon 10 }
+snCPlug              OBJECT IDENTIFIER ::= { snCommon 11 }
+snTime               OBJECT IDENTIFIER ::= { snCommon 12 }
+
+-- --------------------------------------------------------------
+-- AD-DOWNLOAD-MIB:
+-- --------------------------------------------------------------
+
+      DisplayString ::=
+          OCTET STRING
+      -- This data type is used to model textual information taken
+      -- from the NVT ASCII character set.  By convention, objects
+      -- with this syntax are declared as having
+      --
+      --      SIZE (0..255)
+
+--
+-- Download Sub-Groups
+--
+snDownloadParams   OBJECT IDENTIFIER ::= {snDownload 1}
+
+-- --------------------------------------------------------------
+-- SIMATIC NET ASI LINK Download Group
+-- This group contains all the download related parameters.
+-- --------------------------------------------------------------
+
+snDownloadParamsTftpServerHostName OBJECT-TYPE
+        SYNTAX  DisplayString  (SIZE(0..64))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION
+            "IP address (x.y.z.w) otherwise name of the TFTP server host, if the 
+             name server is present."
+         DEFVAL  {""}
+        ::= { snDownloadParams 2 }
+
+
+snDownloadFirmwareFile       OBJECT-TYPE
+      SYNTAX  DisplayString (SIZE(0..32))
+      ACCESS  read-write
+      STATUS  mandatory
+      DESCRIPTION  "Full path name of firmware file to be saved to the TFTP
+           server host. Note that the file name must have the appropriate syntax
+           for the TFTP server host.
+           E.g., if the TFTP server host is a UNIX machine, the full file name
+           might be  /tftp/name.frm, or if the TFTP server host is a Windows
+           machine, the full file name might be  C:\tftp\name.frm."
+       DEFVAL  {"Not Defined Yet"}
+       ::= { snDownloadParams 3 }
+
+
+snDownloadFirmwareControl    OBJECT-TYPE
+       SYNTAX  INTEGER {
+         start-load(2),
+         start-save(3)
+      }
+       ACCESS  write-only
+       STATUS  mandatory
+        DESCRIPTION "Setting this object to start-load(2) causes the
+            system to start downloading the firmware file from TFTP server.
+            Setting this object to start-save(3) causes the system to 
+            start uploading the firmware file to TFTP server."
+       ::= { snDownloadParams 4 }
+       
+snDownloadParamsStatus OBJECT-TYPE
+        SYNTAX  INTEGER {
+        download-in-progress(2),
+                  download-inactive(3)
+    }
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION  "The status of the TFTP client."
+        DEFVAL  {download-inactive}
+        ::= { snDownloadParams 5 }
+
+snDownloadError  OBJECT-TYPE
+        SYNTAX  DisplayString
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION  "The error status of the TFTP client."
+        DEFVAL  {""}
+        ::= { snDownloadParams 7 }
+  
+
+snDownloadEventLogTableFile       OBJECT-TYPE
+      SYNTAX  DisplayString (SIZE(0..32))
+      ACCESS  read-write
+      STATUS  mandatory
+      DESCRIPTION  "Full path name of file to be saved to the TFTP
+           server host. Note that the file name must have the appropriate syntax
+           for the TFTP server host.
+           E.g., if the TFTP server host is a UNIX machine, the full file name
+           might be  /tftp/name.txt, or if the TFTP server host is a Windows
+           machine, the full file name might be  C:\tftp\name.txt.
+     "
+       DEFVAL  {"Not Defined Yet"}
+       ::= { snDownloadParams 9 }
+       
+snDownloadEventLogTableControl    OBJECT-TYPE
+       SYNTAX  INTEGER {
+         start-save(3)
+      }
+       ACCESS  write-only
+       STATUS  mandatory
+        DESCRIPTION "Setting this object to start-save(3) causes the
+            system to start uploading the event log table to TFTP server."
+       ::= { snDownloadParams 10 }
+              
+snDownloadConfigFile       OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..32))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION  "Full path name of config file to be downloaded from the TFTP
+            server host. Note that the file name must have the appropriate syntax
+            for the TFTP server host.
+            E.g., if the TFTP server host is a UNIX machine, the full file name
+            might be  /tftpboot/ad_sb.hex, or if the TFTP server host is a Windows
+            machine, the full file name might be  C:\tftpboot\ad_sb.hex."
+        DEFVAL  {"Not Defined Yet"}
+        ::= { snDownloadParams 11 }
+
+snDownloadConfigControl    OBJECT-TYPE
+        SYNTAX  INTEGER {
+        start-load(2),
+        start-save(3)
+    }
+        ACCESS  write-only
+        STATUS  mandatory
+        DESCRIPTION  "Setting this object to start-load(2) causes the
+            system to start downloading the configuration file from TFTP server.
+            Setting this object to start-save(3) causes the system to 
+            start uploading the configuration file to TFTP server."
+        ::= { snDownloadParams 12 }
+
+
+snDownloadParamsTftpServerHostPort OBJECT-TYPE
+      SYNTAX INTEGER 
+      ACCESS read-only
+      STATUS    mandatory
+      DESCRIPTION "Port of the TFTP server host. Dafault value is 69."
+      DEFVAL { 69 }
+      ::= {  snDownloadParams 13 }
+
+-- --------------------------------------------------------------
+-- AD-NVLOG-MIB: only SCALANCE X-200IRT Devices
+-- --------------------------------------------------------------
+snNvLogMaxEntries  OBJECT-TYPE
+  SYNTAX    INTEGER (10..400)
+  ACCESS    read-write
+  STATUS    mandatory
+  DESCRIPTION
+    "Maximum number of events that can be kept in 
+        non-volatile memory."
+        DEFVAL { 200 }
+  ::= { snNvLog 1 }
+
+snNvLogCurrentEntries  OBJECT-TYPE
+  SYNTAX    INTEGER
+  ACCESS    read-only
+  STATUS    mandatory
+  DESCRIPTION
+    "Number of events that are currently kept in 
+        non-volatile memory."
+        DEFVAL { 0 }
+  ::= { snNvLog 2 }
+  
+snNvLogNewEntries  OBJECT-TYPE
+  SYNTAX    INTEGER
+  ACCESS    read-write
+  STATUS    mandatory
+  DESCRIPTION
+    "Counter for events that are logged in non-volatile memory. 
+        This counter starts at 0 after each system start. User can reset 
+        this counter at any time by writing 0 to this object."
+        DEFVAL { 0 }
+  ::= { snNvLog 3 }
+  
+snNvLogClear   OBJECT-TYPE
+  SYNTAX    INTEGER{
+        clear(1)
+    }
+  ACCESS    write-only
+  STATUS    mandatory
+  DESCRIPTION
+    "Setting this object to clear(1) value, clears the
+     events that are kept in non-volatile memory."
+  ::= { snNvLog 4 }
+
+snNvLogTable   OBJECT-TYPE
+  SYNTAX    SEQUENCE OF SnNvLogEntry
+  ACCESS    not-accessible
+  STATUS    mandatory
+  DESCRIPTION
+    "The table contains the last events that occurred 
+        in the system."
+  ::= { snNvLog 5 }
+
+snNvLogEntry   OBJECT-TYPE
+  SYNTAX    SnNvLogEntry
+  ACCESS    not-accessible
+  STATUS    mandatory
+  DESCRIPTION
+    "The description of an event that occurred in the system,
+     and was stored in non-nolatile memory."
+  INDEX { snNvLogSequenceNumber }
+  ::= { snNvLogTable 1 }
+
+SnNvLogEntry ::= SEQUENCE {
+  snNvLogPowerUpCount
+    INTEGER,
+  snNvLogTime
+    TimeTicks,
+  snNvLogSequenceNumber
+    INTEGER,
+  snNvLogDescr
+    DisplayString,
+  snNvLogType
+    INTEGER
+  }
+
+snNvLogPowerUpCount       OBJECT-TYPE
+        SYNTAX  INTEGER
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION
+                "The number of times the system was powered up."
+        DEFVAL { 0 }
+        ::= { snNvLogEntry 1 }
+
+snNvLogTime       OBJECT-TYPE
+        SYNTAX  TimeTicks
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION
+                "The sysUpTime of the system when the event occurred."
+        DEFVAL { 0 }
+        ::= { snNvLogEntry 2 }
+
+snNvLogSequenceNumber       OBJECT-TYPE
+        SYNTAX  INTEGER
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION
+                "The system sequence number count."
+  REFERENCE
+    "snNvLogSequenceNumber"
+        ::= { snNvLogEntry 3 }
+
+snNvLogDescr   OBJECT-TYPE
+  SYNTAX    DisplayString (SIZE (0..256))
+  ACCESS    read-only
+  STATUS    mandatory
+  DESCRIPTION
+    "ASCII description of the event."
+  DEFVAL { "" }
+  ::= { snNvLogEntry 4 }
+  
+snNvLogType   OBJECT-TYPE
+        SYNTAX  INTEGER {
+        system(1),
+        ethernet(2),
+        profibus-pnio(3),
+        asi1(4),
+        asi2(5),
+        other(6)
+  }
+  ACCESS    read-only
+  STATUS    mandatory
+  DESCRIPTION
+    "Type of event."
+  DEFVAL { system }
+  ::= { snNvLogEntry 5 }
+  
+-- --------------------------------------------------------------
+-- AD-GEN-MIB:
+-- --------------------------------------------------------------
+
+snUserDescription  OBJECT-TYPE
+  SYNTAX    DisplayString (SIZE (0..255))
+  ACCESS    read-write
+  STATUS    mandatory
+  DESCRIPTION
+    "Extended description of the station including user specific
+      information. (Used for the E-mail sender definition)"
+   DEFVAL  {"Not Defined Yet"}
+  ::= { snGen 1 }
+
+snHwVersion OBJECT-TYPE
+  SYNTAX DisplayString (SIZE (0..20))
+  ACCESS read-only
+  STATUS mandatory
+  DESCRIPTION
+    "The hardware version of the system in the format major.minor."
+  ::= { snGen 2 }
+
+snBootStrapVersion OBJECT-TYPE
+  SYNTAX DisplayString (SIZE (0..20))
+  ACCESS read-only
+  STATUS mandatory
+  DESCRIPTION
+    "The firmware version of the bootstrap program installed
+     in the system in the format major.minor."
+  ::= { snGen 3 }
+
+snSwVersion OBJECT-TYPE
+   SYNTAX  DisplayString (SIZE(0..255))
+   ACCESS  read-only
+   STATUS  mandatory
+   DESCRIPTION
+    "The software version of the system in the format major.minor."
+   ::= { snGen 4 }
+
+snInfoSerialNr OBJECT-TYPE
+   SYNTAX DisplayString (SIZE(0..20))
+   ACCESS read-only
+   STATUS mandatory
+   DESCRIPTION "The serial number of this product."
+   ::= { snGen 6 }
+
+snTelnetEnable OBJECT-TYPE
+    SYNTAX  INTEGER {
+      not-supported(10),
+      enabled(1),
+      disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION   "Enables or disables the TELNET interface"
+    DEFVAL { enabled }
+    ::= { snGen 9 }
+
+snTelnetTimeOutEnable OBJECT-TYPE
+    SYNTAX  INTEGER {
+      enabled(1),
+      disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION   "Enables or disables the timeout for a TELNET session"
+    DEFVAL { enabled }
+    ::= { snGen 10 }
+
+snTelnetTimeOut OBJECT-TYPE
+    SYNTAX  INTEGER (60..600)
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION   "Timeout for the TELNET session. The time can be set in 
+                   steps of 10 seconds"
+    DEFVAL { 300 }
+    ::= { snGen 11 }
+
+
+snSNMPEnable OBJECT-TYPE
+    SYNTAX  INTEGER {
+      not-supported(10),
+      enabled(1),
+      disabled(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+       "Determines whether this device may be
+         accessed by SNMP management stations"
+    DEFVAL { enabled }
+    ::= { snGen 12 }
+
+
+-- --------------------------------------------------------------
+-- SIMATIC NET ASI LINKSystem Reset Group
+--
+-- This group contains Action MIB Objects that perform reset operations.
+-- --------------------------------------------------------------
+snSysReset  OBJECT-TYPE
+  SYNTAX  INTEGER {
+        cold-reset(1),
+        warm-reset(2)
+    }
+  ACCESS  write-only
+  STATUS  mandatory
+  DESCRIPTION
+    "Restarts the system.
+     cold-reset(1) is identical to Power-On-Reset or Watchdog-Reset.
+     warm-reset(2) is identical to restart command."
+  ::= { snGen 13 }
+
+snResetPowerUpCount OBJECT-TYPE
+  SYNTAX INTEGER
+  ACCESS read-only
+  STATUS  mandatory
+  DESCRIPTION 
+    "The number of times the sytem was powered up."
+  ::= { snGen 14 }
+
+snSetFactoryDefs   OBJECT-TYPE
+  SYNTAX    INTEGER {
+        set-factory-defaults(1),
+  set-factory-defaults-complete(2)
+  }
+  ACCESS    write-only
+  STATUS    mandatory
+  DESCRIPTION
+    "Restore factory defaults. The following settings are 
+     not modified by setting the value 'set-factory-defaults':
+     IP address, subnet mask, gateway address, SSID, DHCP flag, 
+     system name, system location, system contact, device mode, 
+     Country Code.
+     'set-factory-defaults-complete' will erase the entire 
+     configuration."
+  ::= { snGen 15 }
+
+snResetCounters   OBJECT-TYPE
+  SYNTAX    INTEGER {
+        reset-counters(1)
+                }
+  ACCESS    write-only
+  STATUS    mandatory
+  DESCRIPTION
+    "Reset following variables:
+  snAsiLinkSignalledFaults,
+  snAsiLinkFaultState,
+  snAsiLinkFaultValue,
+  snAsiLinkAuthFailureValue,
+  snNvLogNewEntries,
+  snTrapTimeLastGenerate,
+  snDownloadError,
+  all interface counters in ifMib.
+  "
+  ::= { snGen 16 }
+
+--
+-- Email objects
+-- This group includes parameters for E-mail.
+--
+
+snEmailSMTPIpAddress   OBJECT-TYPE
+    SYNTAX  DisplayString (SIZE (0..64))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "IP address or host name of SMTP E-mail server."
+    ::= { snGen 20 }
+
+snEmailSMTPPort    OBJECT-TYPE
+    SYNTAX  INTEGER (1..65535)
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Port of the SMTP server host. Default value is 25."
+    DEFVAL  {25}
+    ::= { snGen 21 }
+
+snEmailEnable OBJECT-TYPE
+    SYNTAX  INTEGER {
+      enabled(1),
+      disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+          "E-mail functionality for sending a message when a trap is generated."
+    DEFVAL { disabled }
+    ::= { snGen 22 }
+
+snEmailAddress OBJECT-TYPE
+    SYNTAX  DisplayString (SIZE (0..255))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "E-mail address to which messages will be sent."
+      DEFVAL  {"user@host.domain"}
+    ::= { snGen 23 }
+
+snSNMPReadOnly OBJECT-TYPE
+    SYNTAX  INTEGER {
+      enabled(1),
+      disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+       "Determines whether some SNMPv1/v2c agents may write 
+         variables on this device"
+    DEFVAL { enabled }
+    ::= { snGen 24 }
+
+snInfoMLFBNr OBJECT-TYPE
+   SYNTAX DisplayString (SIZE(0..20))
+   ACCESS read-only
+   STATUS mandatory
+   DESCRIPTION "The MLFB number of this product."
+   ::= { snGen 26 }
+    
+-- --------------------------------------------------------------
+-- AD-TCPIP-MIB:
+-- --------------------------------------------------------------
+
+-- --------------------------------------------------------------
+-- SIMATIC NET ASI LINKIp Address Group
+-- --------------------------------------------------------------
+
+snIpAddress OBJECT-TYPE
+    SYNTAX  IpAddress
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "IP address to be used for the agent after system reset."
+      DEFVAL  {0}
+    ::= { snTcpIp 2 }
+
+snIpSubnetMask OBJECT-TYPE
+    SYNTAX  IpAddress
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "IP subnet mask to be used by the agent after system reset."
+      DEFVAL  {0}
+    ::= { snTcpIp 3 }
+
+snIpDefaultGateway OBJECT-TYPE
+    SYNTAX  IpAddress
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "IP address of the default gateway to be used by the agent
+         after next reset of the system."
+      DEFVAL  {0}
+      ::= { snTcpIp 4 }
+
+snDhcp OBJECT-TYPE
+        SYNTAX INTEGER {
+    enabled-via-mac-address (1),
+          disabled(2),
+    enabled-via-client-id (3),
+    enabled-via-sysname (4),
+    enabled-via-devname (5)
+        }
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "The value enabled-via-mac-address(1) runs DHCP, 
+    enabled-via-client-id(3) runs DHCP with option ClientId, 
+    enabled-via-sysname(4) runs DHCP with the system name as ClientId,
+    enabled-via-devname(4) runs DHCP with the pnio device name as ClientId.
+    The value disabled(2) disables DHCP."
+        DEFVAL { enabled-via-mac-address }
+        ::= { snTcpIp 6 }
+      
+snClientId OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..255))
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "User-defined client identifier for DHCP"
+        DEFVAL { "" }
+        ::= { snTcpIp 7 }
+  
+snDcp OBJECT-TYPE
+        SYNTAX INTEGER {
+        enabled (1),
+          disabled(2)
+        }
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Show if device supports DCP (Detection & Configuration Protocoll)."
+        DEFVAL { enabled }
+        ::= { snTcpIp 8 }
+
+
+snMacAddressBase OBJECT-TYPE
+      SYNTAX MacAddress
+      ACCESS read-only
+      STATUS    mandatory
+      DESCRIPTION "MAC address base of the AS-i LINK."
+      ::= { snTcpIp 10 }
+
+-- --------------------------------------------------------------
+-- AD-TRAP-MIB:
+-- --------------------------------------------------------------
+snTrapsEnable OBJECT-TYPE
+      SYNTAX  INTEGER {
+      enabled(1),
+      disabled(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+       "Determines whether this device will
+        transmit traps to SNMP management stations.
+        If this object is set to disable, no traps
+        will be sent.  Setting object to enabled
+        is a necessary, but not the only condition for
+        transmission of traps."
+     DEFVAL { enabled }
+    ::= { snTrapInfo 1 }
+
+snTrapTimeLastGenerated OBJECT-TYPE
+        SYNTAX TimeTicks
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION
+                "The value of sysUpTime at the time the last trap was
+     generated.
+
+     This object can be used by the management station to
+     determine whether traps were generated since the last poll."
+        DEFVAL { 0 }
+        ::= { snTrapInfo 5 }
+
+snTrapMaxManagers  OBJECT-TYPE
+  SYNTAX    INTEGER
+  ACCESS    read-only
+  STATUS    mandatory
+  DESCRIPTION
+    "The maximum number of managers that can be registered
+     for receiving traps."
+        DEFVAL { 10 }
+  ::= { snTrapInfo 6 }
+
+snTrapTable    OBJECT-TYPE
+  SYNTAX  SEQUENCE OF SnTrapEntry
+  ACCESS  not-accessible
+  STATUS  mandatory
+  DESCRIPTION
+    "This table contains information about the managers
+     to which traps should be directed.
+
+     Setting the snTrapState to inactive(3) removes
+     the corresponding entry from the table."
+  ::= { snTrapInfo 7 }
+
+snTrapEntry    OBJECT-TYPE
+  SYNTAX  SnTrapEntry
+  ACCESS  not-accessible
+  STATUS  mandatory
+        DESCRIPTION
+                   "This object contains runtime information about
+                    an individual trap destination."
+  INDEX   { snTrapIndex }
+  ::= { snTrapTable 1 }
+
+SnTrapEntry ::= SEQUENCE {
+  snTrapAddress DisplayString (SIZE (0..64)),
+  snTrapState   INTEGER,
+  snTrapIndex   INTEGER
+  }
+
+snTrapAddress  OBJECT-TYPE
+  SYNTAX    DisplayString (SIZE (0..64))
+        ACCESS  read-write
+        STATUS  mandatory
+  DESCRIPTION
+    "The IP address or host name of the network management entity
+     to which traps (of the type specified in this
+     table entry) will be sent."
+  ::= { snTrapEntry 1 }
+
+snTrapState    OBJECT-TYPE
+  SYNTAX  INTEGER {
+        other(1),
+        active(2),
+        inactive(3)
+    }
+        ACCESS  read-write
+        STATUS  mandatory
+  DESCRIPTION
+    "The state of this entry in the trap address
+     table.  Setting this object to inactive(2)
+     removes the corresponding entry from the table."
+  DEFVAL { inactive }
+  ::= { snTrapEntry 3 }
+
+snTrapIndex    OBJECT-TYPE
+  SYNTAX    INTEGER
+  ACCESS    read-only
+  STATUS    mandatory
+  DESCRIPTION
+    "The Index of Trap Table"
+  REFERENCE
+    "snTrapIndex"
+  ::= { snTrapEntry 6 }
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET ASI LINK COMMON C-PLUG MIB
+-- --------------------------------------------------------------
+snCPlugStatus OBJECT-TYPE
+        SYNTAX INTEGER {
+          accepted(1),
+          not-present(2),
+          not-accepted(3),
+          not-accepted-crc-error(4),
+          not-accepted-group-error(5),
+          not-accepted-type-error(6),
+          not-accepted-version-error(7),
+          not-accepted-fstype-error(8),
+          not-accepted-config-error(9)
+        }
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Current status of the C-PLUG: 
+    accepted(1) C-PLUG is completely accepted (and used) by this device.
+    not-present(2) C-PLUG is (physically) not present.
+    not-accepted(3) C-PLUG is not accepted (reason unknown).
+        not-accepted-crc-error(4) C-PLUG is not accepted, because header CRC is wrong.
+    not-accepted-group-error(5) C-PLUG is not accepted, reason: device group mismatch,   see snCPlugGroupDetected for details.
+    not-accepted-type-error(6) C-PLUG is not accepted, reason: device type mismatch, see snCPlugDeviceDetected for details.
+    not-accepted-version-error(7) C-PLUG is not accepted, wrong configuration revision, see snCPlugConfigRevision for details.
+    not-accepted-fstype-error(8) C-PLUG is not accepted, reason: wrong flash file sytem,  see snCPlugFilesysType for details.
+    not-accepted-config-error(9) C-PLUG is not accepted, because unable to load configuration."
+         ::= { snCPlug 1 }
+
+snCPlugGroupDetected OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..32))
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Device group that is currently read from C-PLUG: 
+    'EMPTY' detect a cleaned or a new C-PLUG.
+    'SCALANCE X-400'  detect a C-PLUG that is formatted for X-400 series.
+    'SCALANCE X-200'  detect a C-PLUG that is formatted for X-200 series.
+    'SCALANCE W-700'  detect a C-PLUG that is formatted for W-700 series.
+    'SCALANCE S-600'  detect a C-PLUG that is formatted for S-600 series.
+    'CP300' detect a C-PLUG that is formatted for CP300 series.
+    'CP400' detect a C-PLUG that is formatted for CP400 series.
+    'IE/PB Link'  detect a C-PLUG that is formatted for IE/PB-Link series. 
+    'IE/AS-i Link' detect a C-PLUG that is formatted for IE/AS-i LINK series.
+    'DP/AS-i LINK' detect a C-PLUG that is formatted for DP/AS-i LINK Advanced series.
+    'SINAUT' detect a C-PLUG that is formatted for SIMAUT series.
+    'UNKNOWN' detect a C-PLUG with an unknown (could be too new) device group.
+    'ERROR' detect a C-PLUG with an invalid device group value."
+        ::= { snCPlug 2 }
+      
+snCPlugDeviceDetected OBJECT-TYPE
+         SYNTAX DisplayString (SIZE(0..32))
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Device type that is currently read from the C-PLUG:
+  This value depends on the device group, and could be (for example):
+  'SCALANCE X414-3E'
+  'SCALANCE X408-2'
+  'SCALANCE X208'
+  ...
+  'SCALANCE W788-1PRO'
+  .
+  'DP/AS-i LINK Advanced 1 Line'
+  'DP/AS-i LINK Advanced 2 Lines'
+  'IE/AS-i LINK PN IO 1 Line'
+  'IE/AS-i LINK PN IO 2 Lines'
+  'CP 443-1 Advanced'
+  ."
+       ::= { snCPlug 3 }
+ 
+snCPlugConfigRevision OBJECT-TYPE
+        SYNTAX INTEGER 
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Device/group configuration revision found on the C-PLUG: 
+                     Each device or device group has its own configuration 
+         Revision value to decide whether C-PLUG data could be accepted, 
+         Must be migrated or could not be used at all.
+               A value (0) means error, a value (255) means empty."
+        ::= { snCPlug 4 }
+
+snCPlugFilesysType OBJECT-TYPE
+        SYNTAX INTEGER {
+          tffs(1),
+          simatic-net-fs(2),
+          unknown(253),
+          error(254),   
+          empty(255)  
+        }
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Type of file system on the C-PLUG flash."
+      ::= { snCPlug 5 }
+
+      
+snCPlugFilesysSize OBJECT-TYPE
+        SYNTAX INTEGER 
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Maximum size of the file system on the C-PLUG flash in bytes."
+        ::= { snCPlug 6 }
+      
+snCPlugFilesysUsage OBJECT-TYPE
+        SYNTAX INTEGER 
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Current usage of the file system on the C-PLUG flash in bytes."
+        ::= { snCPlug 7 }
+      
+snCPlugInfoString OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..255))
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Shows the information string stored on the C-PLUG"
+        ::= { snCPlug 8 }
+
+snCPlugFormat OBJECT-TYPE
+        SYNTAX INTEGER {
+    no-operation(1),
+    format-int(2),
+    clean(4),
+    format-in-progress(5)   
+  }        
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "Modify content of the C-PLUG as follows:
+         format-int(2) format the C-PLUG for this device and copy device-internal values into C-PLUG (if internal values are present). May be supported only by some devices. 
+         clean(4) format the C-PLUG (physically). This will result in a completely empty C-PLUG (if you remove C-PLUG after next power down)."
+        ::= { snCPlug 9 }
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET ASI LINK COMMON TIME MIB (only SCALANCE X-200IRT Devices)
+-- --------------------------------------------------------------
+snTimeClientEnable OBJECT-TYPE
+        SYNTAX INTEGER {
+            enabled (1),
+            disabled (2)
+        }
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "Enables/disables time client."
+        DEFVAL { disabled }
+        ::= { snTime 1 }
+
+snTimeClientType OBJECT-TYPE
+        SYNTAX INTEGER {
+            sntp-poll(1),
+            sntp-listen(2),
+            simatic(3),
+            manual(4)
+        }
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "Choose type of time client:
+         sntp-poll(1) - Poll SNTP server. snTimeClientPollInitInterval and snTimeClientPollInterval 
+                        variables set polling interval before and after first time synchronisation.
+            SNTP server IP address can be set in nTimeServerPort variable.
+         sntp-listen(2) - Listen for SNTP frames,
+         simatic(3) - Synchronise to SINEC time information,
+         manual(4) - Set time manually with snTimeSetManually variable"
+        ::= { snTime 2 }
+   
+snTimeServer OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..64))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "IP Address or host name of the SNTP server (x.y.z.w)."
+        ::= { snTime 3 }
+    
+snTimeServerPort OBJECT-TYPE
+       SYNTAX INTEGER 
+       ACCESS read-write
+       STATUS    mandatory
+       DESCRIPTION "Port of the SNTP server host. Dafault value is 123."
+       DEFVAL { 123 }
+       ::= {  snTime 4 }
+       
+snTimeShift OBJECT-TYPE
+        SYNTAX  INTEGER {
+          timeSNTP-minus-12h (1),
+          timeSNTP-minus-11h (2),
+          timeSNTP-minus-10h (3),
+          timeSNTP-minus-09h (4),
+          timeSNTP-minus-08h (5),
+          timeSNTP-minus-07h (6),
+          timeSNTP-minus-06h (7),
+          timeSNTP-minus-05h (8),
+          timeSNTP-minus-04h (9),
+          timeSNTP-minus-03h (10),
+          timeSNTP-minus-02h (11),
+          timeSNTP-minus-01h (12),
+          timeSNTP-plus-minus-00h (13),
+          timeSNTP-plus-01h (14),
+          timeSNTP-plus-02h (15),
+          timeSNTP-plus-03h (16),
+          timeSNTP-plus-04h (17),
+          timeSNTP-plus-05h (18),
+          timeSNTP-plus-06h (19),
+          timeSNTP-plus-07h (20),
+          timeSNTP-plus-08h (21),
+          timeSNTP-plus-09h (22),
+          timeSNTP-plus-10h (23),
+          timeSNTP-plus-11h (24),
+          timeSNTP-plus-12h (25),
+          timeSNTP-plus-13h (26)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Time difference between SNTP server and device time."
+        DEFVAL { timeSNTP-plus-minus-00h }
+        ::= { snTime 5 }           
+  
+snTimeClientPollInitInterval OBJECT-TYPE
+       SYNTAX INTEGER 
+       ACCESS read-write
+       STATUS    mandatory
+       DESCRIPTION "Polling interval of SNTP requests before the first time synchronisation.
+        Can be set from 1000 ms to 100000 ms"
+       DEFVAL { 1000 }
+       ::= {  snTime 6 }
+
+snTimeClientPollInterval OBJECT-TYPE
+       SYNTAX INTEGER 
+       ACCESS read-write
+       STATUS    mandatory
+       DESCRIPTION "Polling interval of SNTP requests after time was ever read from server.
+        Can be set from 10 sec to 100000 sec"
+       DEFVAL { 3600 }
+       ::= {  snTime 7 }
+
+snTimeSetManually OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..64))
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "Show/set date and time of the device in following format: MMM DD hh:mm:ss YYYY."
+        ::= { snTime 8 }
+  
+snTimeCurrent OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..64))
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Show date and time of the device in following format: MMM DD hh:mm:ss YYYY."
+        ::= { snTime 9 }
+  
+snTimeLastTime OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..64))
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Shows the last time when the device time was set."
+        ::= { snTime 10 }
+
+snTimeLastTimeType OBJECT-TYPE
+        SYNTAX INTEGER {
+            not-set(1),
+            manually(2),
+            by-sntp(3),
+            by-sntp-not-synchronal(4),
+            by-simatic-synchronal(5),
+            by-simatic-not-synchronal(6)
+        }
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Mechanism, which set the device time last."
+        ::= { snTime 11 }
+
+-- -------------------------------------------------------------
+-- SIMATIC NET ASI LINK Product Specific Objects
+-- -------------------------------------------------------------
+snAsiLinkCommon     OBJECT IDENTIFIER ::= { snProductSpecific 1 } 
+snAsiLinkInfo       OBJECT IDENTIFIER ::= { snProductSpecific 20 } 
+snAsiLinkPnio       OBJECT IDENTIFIER ::= { snProductSpecific 21 } 
+
+-- --------------------------------------------------------------
+-- SN-ASI-LINK-PRIV-MIB Product SPECIFIC :
+-- --------------------------------------------------------------
+snAsiLinkFaultState OBJECT-TYPE
+    SYNTAX  INTEGER {
+      noFault(1),
+      fault(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+          "Indicates ASI LINK fault state
+           (state of fault LED/signaling contact)"
+    DEFVAL { noFault }
+    ::= { snAsiLinkCommon 2 }
+
+snAsiLinkSignalledFaults OBJECT-TYPE
+    SYNTAX  Counter 
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+          "Number of signaled faults."    
+    ::= { snAsiLinkCommon 3 }
+
+snAsiLinkFaultValue OBJECT-TYPE
+    SYNTAX  OCTET STRING
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+         "Fault value:  0      = no fault,
+      bit 1  = AS-i 1 fault
+      bit 2  = internal error, 
+      bit 3  = Profibus/PNIO error, 
+      bit 16 = AS-i 2 fault
+      bit 26 = Cold/warm start, 
+      bit 27 = C-PLUG error,
+      bit 30 = PNIO Error - C-PLUG does not exist,
+      bit 31 = PNIO Error - C-PLUG error
+      
+      The length of the fault value is 5 bytes."
+    ::= { snAsiLinkCommon 4 }
+
+
+snAsiLinkPowerSupplyState OBJECT-TYPE
+    SYNTAX  INTEGER {
+      redundance(1),
+      non-redundance(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+          "State of power supply."
+    DEFVAL { redundance }
+    ::= { snAsiLinkCommon 41 }
+
+snAsiLinkAuthFailureValue OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..64))
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+         "Description of the last snAsiLinkAuthFailure trap"
+    ::= { snAsiLinkCommon 55 }
+ 
+snAsiLastEventAsiLine OBJECT-TYPE
+    SYNTAX  INTEGER {
+      asi-1(1),
+      asi-2(2)
+    }
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+         "AS-i line index of last generated trap. Used only to describe variable in traps."
+    ::= { snAsiLinkCommon 150 }
+
+snAsiLastEventSlave OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+         "AS-i slave index from last generated trap. Used only to describe variable in traps."
+    ::= { snAsiLinkCommon 151 }
+
+-- --------------------------------------------------------------
+-- This group includes additional parameters for the event table.
+-- --------------------------------------------------------------
+snAsiLinkEventTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF SnAsiLinkEventEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+             "Event configuration table."
+    ::= { snAsiLinkCommon 62 }
+
+snAsiLinkEventEntry OBJECT-TYPE
+    SYNTAX  SnAsiLinkEventEntry
+    ACCESS  not-accessible
+    STATUS  mandatory
+    DESCRIPTION
+            "Events table row entries."
+    INDEX   { snAsiLinkEventIndex }
+    ::= { snAsiLinkEventTable 1 }
+
+SnAsiLinkEventEntry ::=
+    SEQUENCE {
+  snAsiLinkEventIndex
+      INTEGER,
+        snAsiLinkEventColdWarmStart
+            INTEGER,
+        snAsiLinkEventLinkChange
+            INTEGER,
+        snAsiLinkEventAuthenticationFailure
+            INTEGER,
+        snAsiLinkEventPowerChange
+            INTEGER,
+  snAsiLinkEventFault
+      INTEGER,
+  snAsiLinkEventProfix
+      INTEGER,
+  snAsiLinkEventAsi
+      INTEGER,
+  snAsiLinkEventAsiSlaves
+      INTEGER
+    }
+
+snAsiLinkEventIndex OBJECT-TYPE
+    SYNTAX  INTEGER {
+        eMail(1),
+        trap(2),
+  logTable(3),
+  faultState(4)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+        "Index of columns : E-mail = 1, Traps = 2, LogTable = 3, 
+         Fault state = 4"
+    DEFVAL { eMail }
+    ::= { snAsiLinkEventEntry 1 }
+
+snAsiLinkEventColdWarmStart OBJECT-TYPE
+    SYNTAX  INTEGER {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/disables cold/warm restart notification."
+    DEFVAL { checked }
+    ::= { snAsiLinkEventEntry 2 }
+
+snAsiLinkEventLinkChange OBJECT-TYPE
+    SYNTAX  INTEGER {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables link up notification (There is no fault notification)."
+    DEFVAL { checked }
+    ::= { snAsiLinkEventEntry 3 }
+
+snAsiLinkEventAuthenticationFailure OBJECT-TYPE
+    SYNTAX  INTEGER {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables authentication failure notification (There is no fault notification)."
+    DEFVAL { checked }
+    ::= { snAsiLinkEventEntry 5 }
+
+snAsiLinkEventPowerChange OBJECT-TYPE
+    SYNTAX  INTEGER {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/disables power change notification."
+    DEFVAL { checked }
+    ::= { snAsiLinkEventEntry 6 }
+
+snAsiLinkEventFault OBJECT-TYPE
+    SYNTAX  INTEGER {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables fault notification (There is no fault notification)."
+  DEFVAL { checked }
+    ::= { snAsiLinkEventEntry 9 }
+   
+snAsiLinkEventProfix OBJECT-TYPE
+    SYNTAX  INTEGER {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the PROFIBUS or PNIO state change notification."
+  DEFVAL { checked }
+    ::= { snAsiLinkEventEntry 16 }
+   
+snAsiLinkEventAsi OBJECT-TYPE
+    SYNTAX  INTEGER {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/Disables the AS-i state change notification."
+  DEFVAL { checked }
+    ::= { snAsiLinkEventEntry 17 }
+   
+snAsiLinkEventAsiSlaves OBJECT-TYPE
+    SYNTAX  INTEGER {
+        checked(1),
+        notChecked(2)
+    }
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+        "Enables/disables the AS-i slaves state change notification."
+  DEFVAL { checked }
+    ::= { snAsiLinkEventEntry 18 }
+  
+
+-- --------------------------------------------------------------
+-- Report Fault State Sub-Group
+-- --------------------------------------------------------------
+-- snAsiLinkReportFaultStateTable  OBJECT-TYPE
+--      SYNTAX  SEQUENCE OF SnAsiLinkReportFaultStateEntry
+--      ACCESS  not-accessible
+--      STATUS  mandatory
+--      DESCRIPTION "Fault state table."
+--      ::= { snAsiLinkCommon 92 }
+-- 
+-- snAsiLinkReportFaultStateEntry  OBJECT-TYPE
+--      SYNTAX  SnAsiLinkReportFaultStateEntry
+--      ACCESS  not-accessible
+--      STATUS  mandatory
+--      DESCRIPTION "Fault state table rows entries."
+--      INDEX   { snAsiLinkReportFaultIndex }
+--      ::= { snAsiLinkReportFaultStateTable 1 }
+-- 
+-- SnAsiLinkReportFaultStateEntry ::= SEQUENCE {
+--      snAsiLinkReportFaultIndex     INTEGER,
+--      snAsiLinkReportFaultState     DisplayString
+--      }
+-- 
+-- snAsiLinkReportFaultIndex  OBJECT-TYPE
+--      SYNTAX  INTEGER
+--      ACCESS  read-only
+--      STATUS  mandatory
+--      DESCRIPTION "Index of fault state table."
+--      ::= { snAsiLinkReportFaultStateEntry 1 }
+-- 
+-- snAsiLinkReportFaultState  OBJECT-TYPE
+--      SYNTAX  DisplayString  (SIZE(0..255))
+--      ACCESS  read-only
+--      STATUS  mandatory
+--      DESCRIPTION "Fault state."
+--    ::= { snAsiLinkReportFaultStateEntry 2 }
+-- 
+--  
+
+-- --------------------------------------------------------------
+-- SN-ASI-LINK-PRIV-MIB Product ASI MIB :
+-- --------------------------------------------------------------
+snAsiLinkLinesCount OBJECT-TYPE
+    SYNTAX  INTEGER {
+      singleMaster(1),
+      doubleMaster(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+          "Number of AS-i Lines."
+    ::= { snAsiLinkInfo 1 }
+
+-- --------------------------------------------------------------
+-- SN-ASI-LINK-PRIV-MIB Product ASI MIB Entries:
+-- --------------------------------------------------------------
+snAsiLinkLineTable  OBJECT-TYPE
+      SYNTAX  SEQUENCE OF SnAsiLinkLineEntry
+      ACCESS  not-accessible
+      STATUS  mandatory
+      DESCRIPTION "AS-i Line table."
+      ::= { snAsiLinkInfo 10 }
+
+snAsiLinkLineEntry  OBJECT-TYPE
+      SYNTAX  SnAsiLinkLineEntry
+      ACCESS  not-accessible
+      STATUS  mandatory
+      DESCRIPTION "Information about AS-i line."
+      INDEX   { snAsiLinkLineIndex }
+      ::= { snAsiLinkLineTable 1 }
+
+SnAsiLinkLineEntry ::= SEQUENCE {
+      snAsiLinkLineIndex          INTEGER,
+      snAsiLinkLineSystemFault        INTEGER,
+      snAsiLinkLineApf          INTEGER,
+      snAsiLinkLineConfigError        INTEGER,
+      snAsiLinkLineAutoAddressAvailable     INTEGER,
+      snAsiLinkLineMode         INTEGER,
+      snAsiLinkLineState          INTEGER,
+      snAsiLinkLineGroundShort        INTEGER,
+      snAsiLinkLineAutoAddressMode        INTEGER,
+      snAsiLinkLinePowerFailsCounter        INTEGER,
+      snAsiLinkLinePowerShortsCounter       INTEGER,
+      snAsiLinkLineListOfDetectedSlaves     DisplayString,
+      snAsiLinkLineListOfProjectedSlaves      DisplayString,
+      snAsiLinkLineListOfActivatedSlaves      DisplayString,
+      snAsiLinkLineListOfSlavePeripheralFaults    DisplayString
+      }
+
+snAsiLinkLineIndex  OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "Index of AS-i line."
+    ::= { snAsiLinkLineEntry 1 }
+
+snAsiLinkLineSystemFault  OBJECT-TYPE
+    SYNTAX  INTEGER {
+      no-fault(1),
+      fault(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "Fault state of AS-i line."
+    ::= { snAsiLinkLineEntry 2 }
+
+snAsiLinkLineApf  OBJECT-TYPE
+    SYNTAX  INTEGER {
+      no-apf(1),
+      apf(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "AS-i power fail state of AS-i line."
+    ::= { snAsiLinkLineEntry 3 }
+
+snAsiLinkLineConfigError  OBJECT-TYPE
+    SYNTAX  INTEGER {
+      no-configError(1),
+      configError(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "AS-i configuration error state of AS-i line."
+    ::= { snAsiLinkLineEntry 4 }
+
+snAsiLinkLineAutoAddressAvailable  OBJECT-TYPE
+    SYNTAX  INTEGER {
+      aupAvailable(1),
+      aup-not-Available(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "Auto addressing available on AS-i line."
+    ::= { snAsiLinkLineEntry 5 }
+
+snAsiLinkLineMode  OBJECT-TYPE
+    SYNTAX  INTEGER {
+      protected(1),
+      configuration(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "Mode of AS-i line: protected or configuration."
+    ::= { snAsiLinkLineEntry 6 }
+
+snAsiLinkLineState  OBJECT-TYPE
+    SYNTAX  INTEGER {
+      online(1),
+      offline(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "Online/Offline state of AS-i line."
+    ::= { snAsiLinkLineEntry 7 }
+
+snAsiLinkLineGroundShort  OBJECT-TYPE
+    SYNTAX  INTEGER {
+      no-groundShort(1),
+      groundShort(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "Ground short state of AS-i line."
+    ::= { snAsiLinkLineEntry 8 }
+
+snAsiLinkLineAutoAddressMode  OBJECT-TYPE
+    SYNTAX  INTEGER {
+      enabled(1),
+      disabled(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "Auto addressing mode on AS-i line."
+    ::= { snAsiLinkLineEntry 9 }
+
+snAsiLinkLinePowerFailsCounter  OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "Count of AS-i power fails on AS-i line."
+    ::= { snAsiLinkLineEntry 10 }
+
+snAsiLinkLinePowerShortsCounter  OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "Count of AS-i power shorts on AS-i line."
+    ::= { snAsiLinkLineEntry 11 }
+
+snAsiLinkLineListOfDetectedSlaves  OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..64))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "List of detected slaves. String size is 64 characters. 
+                 Every slave is represented by one character. 
+     1 - slave is detected, 0 - not detected. 
+     Starting with the state of slave 0a and ending with slave 31b. 
+     33th Symbol is always 0.
+     Example: '100000000000000000000000000000000010000000000000000000000000000001' 
+     Detected: Slaves 0a, 1b, 31b."
+    ::= { snAsiLinkLineEntry 20 }
+
+snAsiLinkLineListOfProjectedSlaves  OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..64))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "List of projected slaves. String size is 64 characters. 
+                 Every slave is represented by one character. 
+                 1 - slave is projected, 0 - not projected. 
+     Starting with the state of slave 0a and ending with slave 31b. 
+     33th Symbol is always 0.
+                 Example: '000010000000000000000000000000001000000000000000000000000000000100'
+                 Projected: Slaves 4a, 31a, 29b."
+    ::= { snAsiLinkLineEntry 21 }
+
+snAsiLinkLineListOfActivatedSlaves  OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..64))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "List of activated slaves. String size is 64 characters. 
+                 Every slave is represented by one character. 
+     1 - slave is activated, 0 - not activated. 
+     Starting with the state of slave 0a and ending with slave 31b. 
+     33th Symbol is always 0.
+                 Example: '000010000000000000000000000000001000000000000000000000000000000100'
+                 Activated: Slaves 4a, 31a, 29b."
+    ::= { snAsiLinkLineEntry 22 }
+
+snAsiLinkLineListOfSlavePeripheralFaults  OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..64))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION "List of the slave peripheral faults. String size is 64 characters. 
+                 Every slave is represented by one character. 1 - slave has peripheral fault, 0 - slave has no peripheral fault. 
+     Starting with the state of slave 0a and ending with slave 31b. 
+     33th Symbol is always 0.
+                 Example: '010000000000000000000000000000000000000000000000000000000000000000'
+                 Slave 1a with peripheral fault."
+    ::= { snAsiLinkLineEntry 23 }
+
+-- --------------------------------------------------------------
+-- SN-ASI-LINK-PRIV-MIB Product PNIO MIB :
+-- --------------------------------------------------------------
+snAsiLinkPnioState OBJECT-TYPE
+    SYNTAX  INTEGER {
+      online(1),
+      offline(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+          "State of PNIO Connection."
+    ::= { snAsiLinkPnio 1 }
+
+snAsiLinkPnioDeviceName OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..256))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+          "PNIO Device name of AS-i Link."
+    ::= { snAsiLinkPnio 2 }
+
+snAsiLinkPnioControllerAddress OBJECT-TYPE
+    SYNTAX  IpAddress
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+          "IP address of PNIO Controller if connection is online."
+    ::= { snAsiLinkPnio 3 }
+
+snAsiLinkPnioControllerName OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..256))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+          "Name of PNIO Controller if connection is online."
+    ::= { snAsiLinkPnio 4 }
+
+snAsiLinkPnioControllerState OBJECT-TYPE
+    SYNTAX  INTEGER {
+      run(1),
+      stop(2)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+          "State of PNIO Controller if connection is online."
+    ::= { snAsiLinkPnio 5 }
+
+snAsiLinkPnioUpdateTime OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+          "PNIO cyclic time in ms."
+    ::= { snAsiLinkPnio 6 }
+
+snAsiLinkPnioError OBJECT-TYPE
+    SYNTAX  DisplayString  (SIZE(0..256))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+          "Actual error of PNIO connection."
+    ::= { snAsiLinkPnio 7 }
+
+
+-- --------------------------------------------------------------
+-- AD-SN-MIB:
+-- --------------------------------------------------------------
+snConfigId OBJECT-TYPE
+    SYNTAX  INTEGER {
+      dpASiLinkAdvancedSingleMaster (15),
+      dpASiLinkAdvancedDualMaster (16),
+      ieASiLinkSingleMaster   (17),
+      ieASiLinkDualMaster   (18)
+    }
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+    "ASI LINK hardware and configuration type.
+     dpASiLinkAdvancedSingleMaster (15) - PB/AS-i LINK Advanced Single Master,
+     dpASiLinkAdvancedDualMaster (16)   - PB/AS-i LINK Advanced Dual Master,
+     ieASiLinkSingleMaster (17) - IE/AS-i LINK Single Master,
+     ieASiLinkDualMaster (18)   - IE/AS-i LINK Dual Master,
+    "          
+    ::= { snAsiLinkCommon 100 }
+
+-- --------------------------------------------------------------
+-- SN-ASI-LINK-PRIV-MIB TRAPS:
+-- --------------------------------------------------------------
+
+snAsiLinkAuthFailure TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        VARIABLES { snAsiLinkAuthFailureValue }
+        DESCRIPTION
+            "Authentication failure in WEB or CLI"
+    ::= 4
+    
+snAsiLinkPowerOneLine TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        DESCRIPTION
+            "Power supply is not redundant."
+    ::= 31
+
+snAsiLinkPowerRedundance TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        DESCRIPTION
+            "Power supply is redundant."
+    ::= 32
+
+snAsiLinkFault TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        VARIABLES { snAsiLinkFaultValue }
+        DESCRIPTION
+            "Device entered fault state."
+    ::= 41
+     
+snAsiLinkProfibusOnline TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        DESCRIPTION
+            "DP master is online."
+    ::= 51
+     
+snAsiLinkProfibusOffline TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        DESCRIPTION
+            "DP master is offline."
+    ::= 52
+
+snAsiLinkProfinetOnline TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        DESCRIPTION
+            "PNIO master is online."
+    ::= 53
+     
+snAsiLinkProfinetOffline TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        DESCRIPTION
+            "PNIO master is offline."
+    ::= 54
+     
+     
+snAsiLinkNoApf TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        VARIABLES { snAsiLastEventAsiLine }
+        DESCRIPTION
+            "No AS-i power failure."
+    ::= 61
+     
+snAsiLinkApf TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        VARIABLES { snAsiLastEventAsiLine }
+        DESCRIPTION
+            "AS-i power failure"
+    ::= 62
+     
+snAsiLinkNoErrorConfig TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        VARIABLES { snAsiLastEventAsiLine }
+        DESCRIPTION
+            "No AS-i error config"
+    ::= 63
+    
+snAsiLinkErrorConfig TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        VARIABLES { snAsiLastEventAsiLine }
+        DESCRIPTION
+            "AS-i error config"
+    ::= 64
+    
+snAsiLinkNoGroundShortCircuit TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        VARIABLES { snAsiLastEventAsiLine }
+        DESCRIPTION
+            "No AS-i ground short circuit"
+    ::= 65
+    
+snAsiLinkGroundShortCircuit TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        VARIABLES { snAsiLastEventAsiLine }
+        DESCRIPTION
+            "AS-i ground short circuit"
+    ::= 66
+     
+snAsiLinkNoExternalSlaveError TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        VARIABLES { snAsiLastEventAsiLine, snAsiLastEventSlave }
+        DESCRIPTION
+            "No AS-i slave external error"
+    ::= 67
+    
+snAsiLinkExternalSlaveError TRAP-TYPE
+        ENTERPRISE  snAsiLinkCommon
+        VARIABLES { snAsiLastEventAsiLine, snAsiLastEventSlave }
+        DESCRIPTION
+            "AS-i slave external error"
+    ::= 68
+     
+
+-- -------------------------------------------------------------
+-- Groups in SN-PRIVATE-MIB
+-- -------------------------------------------------------------
+snLastObject     OBJECT-TYPE
+        SYNTAX  INTEGER {
+                last-object(1)
+        }
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION
+                "This object is defined as a dummy object. The object
+                 is used to indicate that no other objects can appear
+                 after it in this private MIB.
+                 The only purpose of this object is for MIB browsers
+                 that need a valid object at the end of a private MIB."
+        DEFVAL { last-object }
+        ::= { iAsiLinkMib 999 }
+
+END
+

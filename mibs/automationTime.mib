@@ -1,0 +1,230 @@
+-- ------------------------------------------------------------------------
+-- automationTime.mib
+--
+-- SIEMENS AG 
+-- Industry Sector
+--
+-- object definitions to manage the
+-- system time and time sync
+--
+-- Copyright (c) 2005-2008 Siemens AG
+-- All rights reserved.
+-- ------------------------------------------------------------------------
+
+AUTOMATION-TIME-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    automationMgmt      FROM AUTOMATION-SMI
+    AutomationStatus    FROM AUTOMATION-TC
+    DateAndTime,
+    DisplayString       FROM SNMPv2-TC
+    Unsigned32,
+    OBJECT-TYPE,
+    NOTIFICATION-TYPE,
+    MODULE-IDENTITY     FROM SNMPv2-SMI
+    MODULE-COMPLIANCE,
+    OBJECT-GROUP,
+    NOTIFICATION-GROUP  FROM SNMPv2-CONF;
+
+automationTimeMIB       MODULE-IDENTITY
+  LAST-UPDATED          "200811100000Z"
+  ORGANIZATION          "Siemens AG"
+  CONTACT-INFO          "
+                         Siemens AG
+                         Industry Sector
+                         I IA SC IC RD 5
+                         Ingo Landgraf
+
+                         Postal: Gleiwitzer Strasse 555
+                                Nuremberg-Moorenbrunn
+                                D-90475
+                         Tel:    +49 911 895 3765
+                         E-mail: ingo.landgraf@siemens.com
+                        "
+  DESCRIPTION           "
+                        Definition of management objects to
+                        display and change the system time
+                        of a A&D product and to manage 
+                        the sync mechanisms.
+                        "
+
+  REVISION              "200811100000Z"
+  DESCRIPTION           "Update the contact information."
+
+  REVISION              "200804290000Z"
+  DESCRIPTION           "Bugfix. automationTimeSyncName used in
+                         automationTimeChanged instead 
+                         automationTimeIndex now.
+                        "
+
+  REVISION              "200511010000Z"
+  DESCRIPTION           "Initial Version of the MIB module."
+  ::= { automationMgmt 3 }
+
+-- ------------------------------------------------------------------------
+-- groups of mib module
+-- ------------------------------------------------------------------------
+automationTimeObjects           OBJECT IDENTIFIER ::= { automationTimeMIB 1 }
+automationTimeNotifications     OBJECT IDENTIFIER ::= { automationTimeMIB 2 }
+automationTimeConformance       OBJECT IDENTIFIER ::= { automationTimeMIB 3 }
+
+-- ------------------------------------------------------------------------
+-- time objects
+-- ------------------------------------------------------------------------
+automationTime                OBJECT-TYPE
+  SYNTAX                      DateAndTime
+  MAX-ACCESS                  read-only
+  STATUS                      current
+  DESCRIPTION                 "The systems absolute time 
+                               (not the uptime !)."
+  ::= { automationTimeObjects 1 }
+
+automationTimeLastSync        OBJECT-TYPE
+  SYNTAX                      OBJECT IDENTIFIER
+  MAX-ACCESS                  read-only
+  STATUS                      current
+  DESCRIPTION                 "
+                              A link into the sync table. Identifies the
+                              mechanism which was used for the last
+                              synchronization.
+                              "
+  ::= { automationTimeObjects 2 }
+
+automationTimeSyncTable       OBJECT-TYPE
+  SYNTAX                      SEQUENCE OF AutomationTimeSyncEntry
+  MAX-ACCESS                  not-accessible
+  STATUS                      current
+  DESCRIPTION                 "The table allows controlling of the sync 
+                               mechanims."
+  ::= { automationTimeObjects 3 }
+
+automationTimeSyncEntry       OBJECT-TYPE
+  SYNTAX                      AutomationTimeSyncEntry
+  MAX-ACCESS                  not-accessible
+  STATUS                      current
+  DESCRIPTION                 "
+                              A row in the time sync table. Each row 
+                              represents a sync mechanism and contains
+                              objects to monitor and control this 
+                              mechanism.
+                              Entries cannot be created or deleted
+                              via SNMP operations.
+                              "
+  INDEX                       { automationTimeSyncIndex }
+  ::= { automationTimeSyncTable 1 }
+
+AutomationTimeSyncEntry ::=   SEQUENCE {
+  automationTimeSyncIndex     Unsigned32,
+  automationTimeSyncName      DisplayString,
+  automationTimeAdminStatus   AutomationStatus
+}
+
+automationTimeSyncIndex       OBJECT-TYPE
+  SYNTAX                      Unsigned32
+  MAX-ACCESS                  not-accessible
+  STATUS                      current
+  DESCRIPTION                 "The unique value which identifies this 
+                               entry."
+  ::= { automationTimeSyncEntry 1 }
+
+automationTimeSyncName        OBJECT-TYPE
+  SYNTAX                      DisplayString
+  MAX-ACCESS                  read-only
+  STATUS                      current
+  DESCRIPTION                 "The name of the sync mechanism."
+  ::= { automationTimeSyncEntry 2 }
+
+automationTimeAdminStatus     OBJECT-TYPE
+  SYNTAX                      AutomationStatus
+  MAX-ACCESS                  read-write
+  STATUS                      current
+  DESCRIPTION                 "
+                              Controls whether the system shall accept 
+                              synchronization events over this mechanism.
+
+                              If the agent restricts the write access, no
+                              matter what reason (e.g. an active PROFINET
+                              configuration), it must reject write
+                              requests by responding with 'badValue'.
+                              "
+  DEFVAL                      { disable }
+  ::= { automationTimeSyncEntry 3 }
+
+-- ------------------------------------------------------------------------
+-- events
+-- ------------------------------------------------------------------------
+automationTimeNotificationsV2   OBJECT IDENTIFIER 
+  ::= { automationTimeNotifications 0 }
+
+automationTimeChanged         NOTIFICATION-TYPE
+  OBJECTS                     { automationTimeSyncName, automationTime }
+  STATUS                      current
+  DESCRIPTION                 "
+                              The system triggers this event in case 
+                              the value of automationTime was changed.
+                              The event contains the new time of the 
+                              system and the mechanism used to change it.
+                              "
+  ::= { automationTimeNotificationsV2 1 }
+
+-- ------------------------------------------------------------------------
+-- conformance statements
+-- ------------------------------------------------------------------------
+--
+-- MIB groupings
+--
+automationTimeSyncGroups        OBJECT IDENTIFIER
+  ::= { automationTimeConformance 1 }
+
+automationTimeInfoGroup         OBJECT-GROUP
+  OBJECTS                       { automationTime }
+  STATUS                        current
+  DESCRIPTION                   "The system time."
+  ::= { automationTimeSyncGroups 1 }
+
+automationTimeSyncControlGroup  OBJECT-GROUP
+  OBJECTS                       {
+                                automationTimeLastSync,
+                                automationTimeSyncName,
+                                automationTimeAdminStatus
+                                }             
+  STATUS                        current
+  DESCRIPTION                   "Controlling of the time synchronization."
+  ::= { automationTimeSyncGroups 2 }
+
+automationTimeSyncEvents        NOTIFICATION-GROUP
+  NOTIFICATIONS                 { automationTimeChanged }
+  STATUS                        current
+  DESCRIPTION                   "Notifications about time changes of 
+                                 the system."
+  ::= { automationTimeSyncGroups 3 }
+
+--
+--  compliance specifications
+--
+automationTimeCompliances       OBJECT IDENTIFIER 
+    ::= { automationTimeConformance 2 }
+
+automationTimeInfoCompliance    MODULE-COMPLIANCE
+  STATUS                        current
+  DESCRIPTION                   "Basic requirements, displays only time."
+  MODULE                        -- compliance to the containing MIB module
+  MANDATORY-GROUPS              { automationTimeInfoGroup }
+  ::= { automationTimeCompliances 1 }
+
+automationTimeSyncCompliance    MODULE-COMPLIANCE
+  STATUS                        current
+  DESCRIPTION                   "
+                                Enables controlling of the time 
+                                synchronization.
+                                Support of notifications is required.
+                                "
+  MODULE                        -- compliance to the containing MIB module
+  MANDATORY-GROUPS              {
+                                automationTimeInfoGroup,
+                                automationTimeSyncControlGroup,
+                                automationTimeSyncEvents
+                                }
+  ::= { automationTimeCompliances 2 }
+
+END

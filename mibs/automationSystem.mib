@@ -1,0 +1,587 @@
+-- ------------------------------------------------------------------------
+-- automationSystem.mib
+--
+-- SIEMENS AG 
+-- Industry Sector
+--
+-- general object definitions to identify
+-- a Siemens A&D system
+--
+-- Copyright (c) 2005-2008 Siemens AG
+-- All rights reserved.
+-- ------------------------------------------------------------------------
+
+AUTOMATION-SYSTEM-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    automationMgmt              FROM AUTOMATION-SMI
+    AutomationSerialNumber,
+    AutomationVersionNumber,
+    AutomationTrigger,
+    AutomationOrderNumber,
+    AutomationFunctionString,
+    AutomationLocationString    FROM AUTOMATION-TC
+    DateAndTime                 FROM SNMPv2-TC
+    Counter32,
+    IpAddress,
+    Unsigned32,
+    OBJECT-TYPE,
+    NOTIFICATION-TYPE,
+    MODULE-IDENTITY             FROM SNMPv2-SMI
+    MODULE-COMPLIANCE,
+    OBJECT-GROUP,
+    NOTIFICATION-GROUP          FROM SNMPv2-CONF;
+
+automationSystemMIB             MODULE-IDENTITY
+    LAST-UPDATED                "200811100000Z"
+    ORGANIZATION                "Siemens AG"
+    CONTACT-INFO                "
+                                Siemens AG
+                                Industry Sector
+                                I IA SC IC RD 5
+                                Ingo Landgraf
+
+                                Postal: Gleiwitzer Strasse 555
+                                        Nuremberg-Moorenbrunn
+                                        D-90475
+                                Tel:    +49 911 895 3765
+                                E-mail: ingo.landgraf@siemens.com
+                                "
+    DESCRIPTION                 "
+                                Definition of generic management objects 
+                                which describe a general A&D product.
+                                "
+
+  REVISION                      "200811100000Z"
+  DESCRIPTION                   "Update the contact information."
+
+  REVISION                      "200804290000Z"
+  DESCRIPTION                   "Bugfixes, no changes regarding content."
+
+  REVISION                      "200501120000Z"
+  DESCRIPTION                   "Initial Version of the MIB module."
+  ::= { automationMgmt 2 }
+
+-- ------------------------------------------------------------------------
+-- groups of mib module
+-- ------------------------------------------------------------------------
+automationSystemObjects         OBJECT IDENTIFIER ::= { automationSystemMIB 1 }
+automationSystemNotifications   OBJECT IDENTIFIER ::= { automationSystemMIB 2 }
+automationSystemConformance     OBJECT IDENTIFIER ::= { automationSystemMIB 3 }
+
+-- ------------------------------------------------------------------------
+-- system identification
+-- ------------------------------------------------------------------------
+automationSystemIdent           OBJECT IDENTIFIER
+    ::= { automationSystemObjects 1 }
+
+automationManufacturerId        OBJECT-TYPE
+    SYNTAX                      Unsigned32 (0..65535)
+    MAX-ACCESS                  read-only
+    STATUS                      current
+    DESCRIPTION                 "
+                                A code which identifies the vendor of the
+                                component (e. g. the specific department
+                                or OEM).
+                                "
+    ::= { automationSystemIdent 1 }
+
+automationOrderNumber           OBJECT-TYPE
+    SYNTAX                      AutomationOrderNumber
+    MAX-ACCESS                  read-only
+    STATUS                      current
+    DESCRIPTION                 "The type / order number of the system."
+    ::= { automationSystemIdent 2 }
+
+automationSerialNumber          OBJECT-TYPE
+    SYNTAX                      AutomationSerialNumber
+    MAX-ACCESS                  read-only
+    STATUS                      current
+    DESCRIPTION                 "The serial number of the system."
+    ::= { automationSystemIdent 3 }
+
+automationHwRevision            OBJECT-TYPE
+    SYNTAX                      AutomationVersionNumber
+    MAX-ACCESS                  read-only
+    STATUS                      current
+    DESCRIPTION                 "The hardware version of the system."
+    ::= { automationSystemIdent 4 }
+
+automationSwRevision            OBJECT-TYPE
+    SYNTAX                      AutomationVersionNumber
+    MAX-ACCESS                  read-only
+    STATUS                      current
+    DESCRIPTION                 "The firmware version of the system."
+    ::= { automationSystemIdent 5 }
+
+automationRevisionCounter       OBJECT-TYPE
+    SYNTAX                      Counter32
+    MAX-ACCESS                  read-only
+    STATUS                      current
+    DESCRIPTION                 "
+                                This value will be incremented every time
+                                one of the other values of 
+                                automationIM0Group or automationIM1Group
+                                (cp. conformance statements) changes.
+                                The counter starts with 1
+                                (default configuration).
+                                "
+    ::= { automationSystemIdent 6 } 
+
+automationRevisionDate          OBJECT-TYPE
+    SYNTAX                      DateAndTime
+    MAX-ACCESS                  read-only
+    STATUS                      current
+    DESCRIPTION                 "
+                                The time of the last change of the value of
+                                automationRevisionCounter. The value starts
+                                with the date of the default configuration.
+                                If a system doesn't support an absolute time
+                                it must not support the value 
+                                (cp. conformance statements).
+
+                                If the system supports the ENTITY-MIB the
+                                value of this entry correlates to
+                                entLastChangeTime.
+                                "
+    ::= { automationSystemIdent 7 }
+
+automationFunctionTag           OBJECT-TYPE
+    SYNTAX                      AutomationFunctionString
+    MAX-ACCESS                  read-only
+    STATUS                      current
+    DESCRIPTION                 "
+                                A code which describes the function of the
+                                component within the plant. This value will
+                                be set by the engineering system. It is
+                                from the automation comparableto the
+                                'sysName'of MIB-II but point of view.
+                                "  
+    DEFVAL                      {""}
+    ::= { automationSystemIdent 8 } 
+
+automationLocationTag           OBJECT-TYPE
+    SYNTAX                      AutomationLocationString
+    MAX-ACCESS                  read-only
+    STATUS                      current
+    DESCRIPTION                 "
+                                A code which describes the location where
+                                the component is installed within the plant.
+                                This value will be set by the engineering
+                                system. It is comparable to the
+                                'sysLocation' of MIB-II but from the
+                                automation point of view.
+                                "
+    DEFVAL                      {""}
+    ::= { automationSystemIdent 9 } 
+
+-- ------------------------------------------------------------------------
+-- system status
+-- ------------------------------------------------------------------------
+automationSystemStatus          OBJECT IDENTIFIER
+    ::= { automationSystemObjects 2 }
+
+automationOperState             OBJECT-TYPE
+    SYNTAX                      INTEGER {
+                                ok(0),
+                                maintenanceRequired(1),
+                                maintenanceDemanded(2),
+                                fault(3)
+                                }
+    MAX-ACCESS                  read-only
+    STATUS                      current
+    DESCRIPTION                 "
+                                General operational status of the component.
+                                ok(0) indicates that the component works,
+                                      no errors.
+                                maintenanceRequired(1) indicates, that at
+                                    the moment there aren't any problems
+                                    but maintenace is required e. g.
+                                    because a service interval has expired
+                                    or the component determined a software 
+                                    update and so on.
+                                maintenanceDemanded(2) indicates,
+                                    that the component works, but there are
+                                    problems which could lead to fault
+                                    situations.
+                                fault(2) indicates a failure condition on
+                                         the component.
+                                "
+    ::= { automationSystemStatus 1 }
+
+-- ------------------------------------------------------------------------
+-- system generics
+-- ------------------------------------------------------------------------
+automationSystemGeneric         OBJECT IDENTIFIER
+    ::= { automationSystemObjects 3 }
+
+automationSystemRestart         OBJECT-TYPE
+    SYNTAX                      INTEGER { 
+                                noOperation(0),
+                                coldstart(1),
+                                warmstart(2),
+                                restartBasicDefaults(3),
+                                restartCompleteDefaults(4)
+                                }
+    MAX-ACCESS                  read-write
+    STATUS                      current
+    DESCRIPTION                 "
+                                Restart the system. Setting the value to 1
+                                causes a coldstart, a value of 2 causes a
+                                warmstart. The different behaviour of
+                                coldstart and warmstart depends on the
+                                component and is described in the user
+                                manual of the component.
+
+                                If a warmstart is triggered by the values 
+                                of 3 or 4 the settings of the component will
+                                be reseted to factory defaults. The value of
+                                3 means that only the basic parameters will
+                                be reseted, the value of 4 causes a complete
+                                reset. Which parameters are affected by this
+                                action is described in the components
+                                manual.
+
+                                If the agent restricts the write access, no
+                                matter what reason (e.g. an active PROFINET
+                                configuration), it must reject write
+                                requests by responding with 'badValue'.
+                                "
+    ::= { automationSystemGeneric 1 }
+
+automationPowerUpCount          OBJECT-TYPE
+    SYNTAX                      Counter32
+    MAX-ACCESS                  read-only
+    STATUS                      current
+    DESCRIPTION                 "Number of system starts."
+    ::= { automationSystemGeneric 3 }
+
+automationResetCounters         OBJECT-TYPE
+    SYNTAX                      AutomationTrigger
+    MAX-ACCESS                  read-write
+    STATUS                      current
+    DESCRIPTION                 "
+                                Reset all statistic counters of the
+                                component. On write access only a value of
+                                set(1) will be accepted (and causes a reset
+                                of the counters of the system), all other
+                                values will be rejected.
+                                
+                                If the agent restricts the write access, no
+                                matter what reason (e.g. an active PROFINET
+                                configuration), it must reject write
+                                requests by responding with 'badValue'.
+                                "
+    ::= { automationSystemGeneric 4 }
+
+-- ------------------------------------------------------------------------
+-- agent configuration of the system
+-- ------------------------------------------------------------------------
+automationSystemIp              OBJECT IDENTIFIER 
+    ::= { automationSystemObjects 4 }
+
+automationSystemIpAddress       OBJECT-TYPE
+    SYNTAX                      IpAddress
+    MAX-ACCESS                  read-write
+    STATUS                      current
+    DESCRIPTION                 "
+                                This object contains the IP address of the
+                                system (which is used to connect to the SNMP
+                                agent, the web entity etc.). If the
+                                component features an outbandport, this
+                                object contains the inband IP address.
+
+                                If the agent restricts the write access, no
+                                matter what reason (e.g. an active PROFINET
+                                configuration), it must reject write
+                                requests by responding with 'badValue'.
+                                "
+    DEFVAL                      { 0 }
+    ::= { automationSystemIp 1 }
+
+automationSystemIpSubnetMask    OBJECT-TYPE
+    SYNTAX                      IpAddress
+    MAX-ACCESS                  read-write
+    STATUS                      current
+    DESCRIPTION                 "
+                                This object contains the subnet mask of
+                                the system (which is used to connect to
+                                the SNMP agent, the webentity etc.).
+                                If the component features an outbandport,
+                                this object contains the inband subnet mask.
+
+                                If the agent restricts the write access, no
+                                matter what reason (e.g. an active PROFINET
+                                configuration), it must reject write 
+                                requests by responding with 'badValue'.
+                                "
+    DEFVAL                      { 0 }
+    ::= { automationSystemIp 2 }
+
+automationSystemIpGateway       OBJECT-TYPE
+    SYNTAX                      IpAddress
+    MAX-ACCESS                  read-write
+    STATUS                      current
+    DESCRIPTION                 "
+                                The default gateway of the system.
+
+                                If the agent restricts the write access, no
+                                matter what reason (e.g. an active PROFINET
+                                configuration), it must reject write
+                                 requests by responding with 'badValue'.
+                                "  
+    DEFVAL                      { 0 }
+    ::= { automationSystemIp 3 }
+                        
+automationSystemOutbandIp       OBJECT-TYPE
+    SYNTAX                      IpAddress
+    MAX-ACCESS                  read-write
+    STATUS                      current
+    DESCRIPTION                 "
+                                If the system features an outband port, this
+                                object contains it's IP address.
+                                
+                                If the agent restricts the write access, no
+                                matter what reason (e.g. an active PROFINET
+                                configuration), it must reject write
+                                requests by responding with 'badValue'.
+                                "
+    DEFVAL                      { 0 }
+    ::= { automationSystemIp 4 }
+
+automationSystemOutbandSubnetMask   OBJECT-TYPE
+    SYNTAX                      IpAddress
+    MAX-ACCESS                  read-write
+    STATUS                      current
+    DESCRIPTION                 "
+                                If the system features an outband port,
+                                this object contains it's subnet mask.
+
+                                If the agent restricts the write access, no
+                                matter what reason (e.g. an active PROFINET
+                                configuration), it must reject write
+                                requests by responding with 'badValue'.
+                                "
+    DEFVAL                      { 0 }
+    ::= { automationSystemIp 5 }
+
+-- ------------------------------------------------------------------------
+-- general event definitions
+-- ------------------------------------------------------------------------
+automationSystemNotificationsV2 OBJECT IDENTIFIER 
+    ::= { automationSystemNotifications 0 }
+
+automationOperStateChanged      NOTIFICATION-TYPE
+    OBJECTS                     { automationOperState }
+    STATUS                      current
+    DESCRIPTION                 "The system triggers this event in case the
+                                value of automationOperState changed."
+    ::= { automationSystemNotificationsV2 1 }
+                        
+automationRevisionChanged       NOTIFICATION-TYPE
+    STATUS                      current
+    DESCRIPTION                 "
+                                The system triggers this event in case the
+                                configuration changed (e. g. the hardware
+                                configuration, a firmware update or IP
+                                parameter).
+                                "
+    ::= { automationSystemNotificationsV2 2 }
+
+-- ------------------------------------------------------------------------
+-- conformance statements
+-- ------------------------------------------------------------------------
+
+--
+-- MIB groupings
+--
+automationSystemGroups          OBJECT IDENTIFIER
+    ::= { automationSystemConformance 1 }
+
+automationIM0Group              OBJECT-GROUP
+    OBJECTS                     {
+                                automationManufacturerId,
+                                automationOrderNumber,
+                                automationSerialNumber,
+                                automationHwRevision,
+                                automationSwRevision,
+                                automationRevisionCounter
+                                }
+    STATUS                      current
+    DESCRIPTION                 "
+                                These group collects the named parmeters
+                                according to the referenced guideline.
+                                "
+    REFERENCE                   "
+                                I&M parameters are described in the 
+                                PROFIBUS Guideline, Profile Guidelines
+                                Part 1:
+
+                                Identification & Maintenance Functions,
+                                Version 1.1.1, March 2005
+                                "
+    ::= { automationSystemGroups 1 }
+
+automationIM1Group              OBJECT-GROUP
+    OBJECTS                     {              
+                                automationFunctionTag,
+                                automationLocationTag
+                                }
+    STATUS                      current
+    DESCRIPTION                 "
+                                These group collects the named parmeters
+                                according to the referenced guideline.
+                                "
+    REFERENCE                   "
+                                I&M parameters are described in the
+                                PROFIBUS Guideline, Profile Guidelines
+                                Part 1:
+                                Identification & Maintenance Functions,
+                                Version 1.1.1, March 2005
+                                "
+    ::= { automationSystemGroups 2 }
+
+automationIM2Group              OBJECT-GROUP
+    OBJECTS                     { automationRevisionDate }
+    STATUS                      current
+    DESCRIPTION                 "
+                                These group collects the named parmeters
+                                according to the referenced guideline.
+                                The revision date is only available if
+                                the system supports an absolute time,
+                                therefor this group must be only
+                                supported if the absolute time is
+                                available.
+                                "
+    REFERENCE                   "
+                                I&M parameters are described in the
+                                PROFIBUS Guideline, Profile Guidelines
+                                Part 1:
+
+                                Identification & Maintenance Functions,
+                                Version 1.1.1, March 2005
+                                "
+    ::= { automationSystemGroups 3 }
+
+automationStatusGroup           OBJECT-GROUP
+    OBJECTS                     { automationOperState }
+    STATUS                      current
+    DESCRIPTION                 "Generic status information."
+    ::= { automationSystemGroups 4 }
+
+automationRemoteRestartGroup    OBJECT-GROUP
+    OBJECTS                     {
+                                automationSystemRestart,
+                                automationPowerUpCount
+                                }
+    STATUS                      current
+    DESCRIPTION                 "Allows restart via SNMP."
+    ::= { automationSystemGroups 5 }
+
+automationResetCounterGroup     OBJECT-GROUP
+    OBJECTS                     { automationResetCounters }
+    STATUS                      current
+    DESCRIPTION                 "Allows reset of all counters."
+    ::= { automationSystemGroups 6 }
+
+automationIpGroup               OBJECT-GROUP
+    OBJECTS                     {
+                                automationSystemIpAddress,
+                                automationSystemIpSubnetMask,
+                                automationSystemIpGateway
+                                }
+    STATUS                      current
+    DESCRIPTION                 "IP configuration of the agent."
+    ::= { automationSystemGroups 7 }
+
+automationOutbandGroup          OBJECT-GROUP
+    OBJECTS                     {
+                                automationSystemOutbandIp,
+                                automationSystemOutbandSubnetMask
+                                }
+    STATUS                      current
+    DESCRIPTION                 "Configuration of the outband port."
+    ::= { automationSystemGroups 8 }
+
+automationStatusEvents          NOTIFICATION-GROUP
+    NOTIFICATIONS               { automationOperStateChanged }
+    STATUS                      current
+    DESCRIPTION                 "Notifications about status changes."
+    ::= { automationSystemGroups 9 }
+
+automationConfigurationEvents   NOTIFICATION-GROUP
+    NOTIFICATIONS               { automationRevisionChanged }
+    STATUS                      current
+    DESCRIPTION                 "Notifications about configuration changes."
+    ::= { automationSystemGroups 10 }
+
+--
+--  compliance specifications
+--
+automationSystemCompliances     OBJECT IDENTIFIER
+    ::= { automationSystemConformance 2 }
+
+automationSystemBasicCompliance MODULE-COMPLIANCE
+    STATUS                      current
+    DESCRIPTION                 "Minimum implementation requirements for all
+                                A&D systems with SNMP support."
+    MODULE                      -- compliance to the containing MIB module
+    MANDATORY-GROUPS            { automationIM0Group }
+    GROUP                       automationIM1Group
+    DESCRIPTION                 "Required if the system provides I&M 1."
+    GROUP                       automationIM2Group
+    DESCRIPTION                 "Required if the system provides I&M 2."
+    GROUP                       automationStatusGroup
+    DESCRIPTION                 "Required if the system provides a
+                                collective status information."
+    GROUP                       automationResetCounterGroup
+    DESCRIPTION                 "
+                                Required for systems which provide a
+                                reset of all their counters.
+                                "
+    ::= { automationSystemCompliances 1 }
+
+automationSystemExtCompliance   MODULE-COMPLIANCE
+    STATUS                      current
+    DESCRIPTION                 "Extended requirements for A&D systems."
+    MODULE                      -- compliance to the containing MIB module
+    MANDATORY-GROUPS            { automationIM0Group }
+    GROUP                       automationIM1Group
+    DESCRIPTION                 "Required if the system provides I&M 1."
+    GROUP                       automationIM2Group
+    DESCRIPTION                 "Required if the system provides I&M 2." 
+    GROUP                       automationIpGroup
+    DESCRIPTION                 "
+                                Required if the system allows configuring of
+                                the IP parameters via SNMP and no other MIBs
+                                are implemented which support management of
+                                this parameters.
+                                "
+    GROUP                       automationOutbandGroup
+    DESCRIPTION                 "
+                                Required if the system provides an outband
+                                port and management of this port is allowed
+                                via SNMP and no other MIBs are implemented
+                                which support management of the outband
+                                port.
+                                "
+    GROUP                       automationRemoteRestartGroup
+    DESCRIPTION                 "Required if restart of the system via
+                                SNMP allowed."
+    GROUP                       automationStatusGroup
+    DESCRIPTION                 "Required if the system provides a
+                                collective status information."
+    GROUP                       automationResetCounterGroup
+    DESCRIPTION                 "
+                                Required for systems which provide a
+                                reset of all their counters.
+                                "
+    GROUP                       automationConfigurationEvents
+    DESCRIPTION                 "Required for systems which provide
+                                notifications."
+    GROUP                       automationStatusEvents
+    DESCRIPTION                 "Required for systems which provide
+                                notifications."
+    ::= { automationSystemCompliances 2 }
+
+END

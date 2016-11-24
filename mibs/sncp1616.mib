@@ -1,0 +1,103 @@
+-- ----------------------------------------------------------------------
+-- snCP1616.mib
+-- Siemens  SIMATIC NET 
+-- CP1616  Private MIB
+-- Copyright (c) 2004 Siemens AG
+-- ----------------------------------------------------------------------
+--
+-- MIB Module :   SN-CP1616-PRIV-MIB
+--
+-- Revision   :   V0.1.0
+-- Date       :   2005/03/09 
+--
+-- ----------------------------------------------------------------------
+
+SN-CP1616-PRIV-MIB DEFINITIONS ::= BEGIN
+
+  IMPORTS
+          enterprises FROM RFC1155-SMI
+          OBJECT-TYPE FROM RFC-1212;
+
+  DisplayString ::=
+    OCTET STRING
+
+siemensAD               OBJECT IDENTIFIER ::= { enterprises 4196 }
+adProductMibs           OBJECT IDENTIFIER ::= { siemensAD 1 }
+simaticNet              OBJECT IDENTIFIER ::= { adProductMibs 1 }
+iCP     	            OBJECT IDENTIFIER ::= { simaticNet 9 } 
+iCP1616                 OBJECT IDENTIFIER ::= { iCP 1 } 
+
+-- -------------------------------------------------------------
+-- SIMATIC NET CP1616 Objects
+-- -------------------------------------------------------------
+snCommon             OBJECT IDENTIFIER ::= { iCP1616 1 }
+snProductSpecific    OBJECT IDENTIFIER ::= { iCP1616 2 }
+
+
+-- -------------------------------------------------------------
+-- SIMATIC NET CP1616 Report Objects
+-- -------------------------------------------------------------
+snCP1616Report        OBJECT IDENTIFIER ::= { snProductSpecific 2 }
+
+
+-- --------------------------------------------------------------
+-- SIMATIC NET CP1616 Report Group
+-- --------------------------------------------------------------
+snCp1616BFLedVal OBJECT-TYPE
+   SYNTAX INTEGER { off(1), on(2), blink(3), fastBlink(4) }
+   ACCESS read-only
+   STATUS mandatory
+   DESCRIPTION "State of BF LED. Value list: off(1), on(2), blink(3), fastBlink(4)"
+   ::= { snCP1616Report 1 }
+
+snCp1616SFLedVal OBJECT-TYPE
+   SYNTAX INTEGER { off(1), on(2), blink(3), fastBlink(4) }
+   ACCESS read-only
+   STATUS mandatory
+   DESCRIPTION "State of SF LED. Value list: off(1), on(2), blink(3), fastBlink(4)"
+   ::= { snCP1616Report 2 }
+
+snCp1616RunLedVal OBJECT-TYPE
+   SYNTAX INTEGER { off(1), on(2), blink(3), fastBlink(4) }
+   ACCESS read-only
+   STATUS mandatory
+   DESCRIPTION "State of run LED. Value list: off(1), on(2), blink(3), fastBlink(4)"
+   ::= { snCP1616Report 3 }
+
+snCp1616StopLedVal OBJECT-TYPE
+   SYNTAX INTEGER { off(1), on(2), blink(3), fastBlink(4) }
+   ACCESS read-only
+   STATUS mandatory
+   DESCRIPTION "State of stop LED. Value list: off(1), on(2), blink(3), fastBlink(4)"
+   ::= { snCP1616Report 4 }
+
+snCp1616BFLed OBJECT-TYPE
+   SYNTAX  DisplayString (SIZE (0..255))
+   ACCESS read-only
+   STATUS mandatory
+   DESCRIPTION "Textual description of the BF LED state"
+   ::= { snCP1616Report 5 }
+
+snCp1616SFLed OBJECT-TYPE
+   SYNTAX  DisplayString (SIZE (0..255))
+   ACCESS read-only
+   STATUS mandatory
+   DESCRIPTION "Textual description of the SF LED state"
+   ::= { snCP1616Report 6 }
+
+snCp1616RunLed OBJECT-TYPE
+   SYNTAX  DisplayString (SIZE (0..255))
+   ACCESS read-only
+   STATUS mandatory
+   DESCRIPTION "Textual description of the run LED state"
+   ::= { snCP1616Report 7 }
+
+snCp1616StopLed OBJECT-TYPE
+   SYNTAX  DisplayString (SIZE (0..255))
+   ACCESS read-only
+   STATUS mandatory
+   DESCRIPTION "Textual description of the stop LED state"
+   ::= { snCP1616Report 8 }
+
+END
+

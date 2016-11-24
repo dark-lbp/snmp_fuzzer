@@ -1,0 +1,409 @@
+-- ----------------------------------------------------------------------
+-- SOLAgent.mib
+-- Siemens   
+-- Copyright (c) 2004-2009 Siemens AG
+-- ----------------------------------------------------------------------
+--
+-- MIB Module :   SOL-MIB
+--
+-- Revision   :   V1.0.0.0
+-- Date       :   2009/03/05
+--
+-- ----------------------------------------------------------------------
+SOL-MIB DEFINITIONS ::= BEGIN
+
+
+
+         IMPORTS
+                 enterprises
+                         FROM RFC1155-SMI
+                 OBJECT-TYPE
+                         FROM RFC-1212
+                 DisplayString
+                         FROM RFC1213-MIB;
+
+-- SOL tree structure definition
+
+-- the following should reside in the simaticPC (siemensAD, adProductMibs) MIB
+     siemensAD           OBJECT IDENTIFIER ::= { enterprises 4196 }
+     adProductMibs       OBJECT IDENTIFIER ::= { siemensAD 1 }
+     simaticPC           OBJECT IDENTIFIER ::= { adProductMibs 2 }
+
+-- now this is SOL
+         sol             OBJECT IDENTIFIER ::= { simaticPC 1 }
+
+-- SOL system info
+     solSystem           OBJECT IDENTIFIER ::= { sol 1 }       -- system info
+     solSystemType       OBJECT IDENTIFIER ::= { solSystem 1 } -- system type
+     solSystemStatus     OBJECT IDENTIFIER ::= { solSystem 2 } -- system status
+     solSystemWatchdog   OBJECT IDENTIFIER ::= { solSystem 3 } -- system watchdog
+     solSystemHeartbeat  OBJECT IDENTIFIER ::= { solSystem 4 } -- system heartbeat
+     solSystemInterrupt  OBJECT IDENTIFIER ::= { solSystem 5 }
+     solSystemHibernate  OBJECT IDENTIFIER ::= { solSystem 6 } -- system hibernate
+
+     solSensor           OBJECT IDENTIFIER ::= { sol 2 }    -- sensor info
+     solDisc             OBJECT IDENTIFIER ::= { sol 3 }    -- disc info
+
+     solEnd              OBJECT IDENTIFIER ::= { sol 10 }   -- just to mark the end for convenience
+
+---------------------------------------------
+-- System
+---------------------------------------------
+
+    name         OBJECT-TYPE
+                 SYNTAX       DisplayString
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "System name"
+                 ::=          { solSystemType 1 }
+
+-- status
+    statusValue OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-write
+                 STATUS       mandatory
+                 DESCRIPTION  "Status value, set this value to 0 to reset status"
+                 ::=          { solSystemStatus 1 }
+
+-- watchdog
+    watchdogActive OBJECT-TYPE
+                 SYNTAX       INTEGER (0..1)
+                 ACCESS       read-write
+                 STATUS       mandatory
+                 DESCRIPTION  "Is watchdog activated?. Set this value to 1/0 to
+                       activate/deactivate the watchdog."
+                 ::=          { solSystemWatchdog 1 }
+
+    watchdogTime OBJECT-TYPE
+                 SYNTAX       INTEGER (3..255)
+                 ACCESS       read-write
+                 STATUS       mandatory
+                 DESCRIPTION  "Watchdog interval in seconds."
+                 ::=          { solSystemWatchdog 2 }
+
+    watchdogResetEnable OBJECT-TYPE
+                 SYNTAX       INTEGER (0..1)
+                 ACCESS       read-write
+                 STATUS       mandatory
+                 DESCRIPTION  "Is watchdog reset enabled?. If activated then a watchdog
+                       timeout will hard-reset the system. Set this value
+                 to 1/0 to activate/deactivate the automatic reset."
+                 ::=          { solSystemWatchdog 3 }
+
+-- heartbeat
+    heartbeatInterval OBJECT-TYPE
+                 SYNTAX       INTEGER (1..255)
+                 ACCESS       read-write
+                 STATUS       mandatory
+                 DESCRIPTION  "Heartbeat interval in seconds."
+                 ::=          { solSystemHeartbeat 1 }
+
+    heartbeatEnable OBJECT-TYPE
+                 SYNTAX       INTEGER (0..1)
+                 ACCESS       read-write
+                 STATUS       mandatory
+                 DESCRIPTION  "Is heartbeat activated? Set this value to 1/0 to
+                       activate/deactivate the heartbeat. If activated then
+                 a heartbeat trap will be triggered every heartbeat interval."
+                 ::=          { solSystemHeartbeat 2 }
+
+-- interrupt
+    interruptActive    OBJECT-TYPE
+                 SYNTAX       INTEGER (0..1)
+                 ACCESS       read-write
+                 STATUS       mandatory
+                 DESCRIPTION  "Is interrupt activatec? Set this value to 1/0 to
+                       activate/deactivate the interrupt. If activated then
+                 an interrupt trap will be triggered on every SOM
+                 interrupt."
+                 ::=          { solSystemInterrupt 1 }
+
+-- hibernate
+    systemHibernate    OBJECT-TYPE
+                 SYNTAX       INTEGER (0..255)
+                 ACCESS       read-write
+                 STATUS       mandatory
+                 DESCRIPTION  "Is hibernate activated? Set this value is initially 0 if the system
+                       doesn't support hibernate mode. Switch bit 1 to toggle
+                 between enable/disable hibernate"
+                 ::=          { solSystemHibernate 0 }
+
+-- sensor table
+    sensorTable    OBJECT-TYPE
+                 SYNTAX       SEQUENCE OF SensorList
+                 ACCESS       not-accessible
+                 STATUS       mandatory
+                 DESCRIPTION  "Table of sensor information. This is no sparse table.
+                       Sensor[1] to Sensor[3] are thermometers, Sensor[4]
+                 to Sensor[6] are fans."
+                 ::=          { solSensor 1 }
+
+    SensorList     ::=  SEQUENCE {
+                            sensorIndex     INTEGER (1..6),
+              sensorEnable    INTEGER (0..1),
+              sensorType      INTEGER (1..2),
+              sensorSubType   INTEGER (1..3),
+                            sensorCurrent   INTEGER,
+              sensorUpper     INTEGER,
+              sensorLower     INTEGER,
+              sensorUpperMax  INTEGER,
+              sensorLowerMin  INTEGER,
+              sensorMin       INTEGER,
+              sensorMax       INTEGER,
+              sensorStatus    INTEGER,
+              sensorUpperMaxLimit INTEGER
+                        }
+
+    sensorEntry    OBJECT-TYPE
+                 SYNTAX       SensorList
+                 ACCESS       not-accessible
+                 STATUS       mandatory
+                 DESCRIPTION  "A sensor"
+                 INDEX        { sensorIndex }
+                 ::=          { sensorTable 1 }
+
+    sensorIndex    OBJECT-TYPE
+                 SYNTAX       INTEGER (1..6)
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Sensor index."
+                 ::=          { sensorEntry 1 }
+
+    sensorType      OBJECT-TYPE
+                 SYNTAX       INTEGER (1..2)
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Type of sensor. A thermometer is a sensor of type 1,
+                       a fan is a sensor of type 2."
+                 ::=          { sensorEntry 2 }
+
+    sensorSubType      OBJECT-TYPE
+                 SYNTAX       INTEGER (1..3)
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Subtype of sensor."
+                 ::=          { sensorEntry 3 }
+
+    sensorEnable   OBJECT-TYPE
+                 SYNTAX       INTEGER (0..1)
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "1 if sensor is enabled, 0 otherwise."
+                 ::=          { sensorEntry 4 }
+
+    sensorCurrent      OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Current sensor value."
+                 ::=          { sensorEntry 5 }
+
+    sensorUpper     OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-write
+                 STATUS       mandatory
+                 DESCRIPTION  "Upper sensor threshold."
+                 ::=          { sensorEntry 6 }
+
+    sensorLower     OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-write
+                 STATUS       mandatory
+                 DESCRIPTION  "Lower sensor threshold."
+                 ::=          { sensorEntry 7 }
+
+    sensorUpperMax  OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Max upper sensor threshold."
+                 ::=          { sensorEntry 8 }
+
+    sensorLowerMin  OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Min lower sensor threshold."
+                 ::=          { sensorEntry 9 }
+
+    sensorMin  OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Min sensor value. The minimum value measured since
+                       agent startup."
+                 ::=          { sensorEntry 10 }
+
+    sensorMax  OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Max sensor value. The maximum value measured since
+                       agent startup."
+                 ::=          { sensorEntry 11 }
+
+    sensorStatus  OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "sensor status. A non-zero value means alarm condition.
+                       See SOM-specification for details."
+                 ::=          { sensorEntry 12 }
+
+    sensorUpperMaxLimit  OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Max upper sensor threshold limit."
+                 ::=          { sensorEntry 13 }
+
+-- disc table
+    discTable    OBJECT-TYPE
+                 SYNTAX       SEQUENCE OF DiscList
+                 ACCESS       not-accessible
+                 STATUS       mandatory
+                 DESCRIPTION  "Table of disc information. This is no sparse table.
+                       This table contains up to 4 discs. If a disc is a S.M.A.R.T.-
+                 disc then every value is accessible. If not, only
+                 discIndex, discIsOk, discCapIsIDE, discCapIsSmart are
+                 accessible. In this case, the disc is assumed to be not ok.
+                 On Windows NT/2000, the discCapIsIDE is broken."
+                 ::=          { solDisc 1 }
+
+    DiscList     ::=             SEQUENCE
+                               {
+                                    discIndex             INTEGER (1..4),
+                  discIsOk              INTEGER (0..1),
+                  discCapIsIDE          INTEGER (0..1),
+                  discCapIsSmart        INTEGER (0..1),
+                                    discIdModelNumber     OCTET STRING (SIZE(40)),
+                                    discIdFirmwareRev     OCTET STRING (SIZE(8)),
+                                    discIdSerialNumber    OCTET STRING (SIZE(20)),
+                  discIdNumCyls         INTEGER,
+                  discIdNumHeads        INTEGER,
+                  discIdBytesPerTrack   INTEGER,
+                  discIdBytesPerSector  INTEGER
+                                 }
+
+    discEntry    OBJECT-TYPE
+                 SYNTAX       DiscList
+                 ACCESS       not-accessible
+                 STATUS       mandatory
+                 DESCRIPTION  "A disc."
+                 INDEX        { discIndex }
+                 ::=          { discTable 1 }
+
+    discIndex    OBJECT-TYPE
+                 SYNTAX       INTEGER (1..4)
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Disc index."
+                 ::=          { discEntry 1 }
+
+    discIsOk     OBJECT-TYPE
+                 SYNTAX       INTEGER (0..1)
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "1 if disc is ok, 0 if disc is about to crash and should
+                       be replaced."
+                 ::=          { discEntry 2 }
+
+    discCapIsIDE       OBJECT-TYPE
+                 SYNTAX       INTEGER (0..1)
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "1 if disc is an IDE disc, 0 otherwise. On Windows NT,
+                       this is broken."
+                 ::=          { discEntry 3 }
+
+    discCapIsSmart     OBJECT-TYPE
+                 SYNTAX       INTEGER (0..1)
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "1 if disc is a S.M.A.R.T. disc, 0 otherwise."
+                 ::=          { discEntry 4 }
+
+    discIdModelNumber     OBJECT-TYPE
+                 SYNTAX       OCTET STRING (SIZE(40))
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Disc model number."
+                 ::=          { discEntry 11 }
+
+    discIdFirmwareRev     OBJECT-TYPE
+                 SYNTAX       OCTET STRING (SIZE(8))
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Disc firmware revision."
+                 ::=          { discEntry 12 }
+
+    discIdSerialNumber     OBJECT-TYPE
+                 SYNTAX       OCTET STRING (SIZE(20))
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Disc serial number."
+                 ::=          { discEntry 13 }
+
+    discIdNumCyls     OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Number of cylinders."
+                 ::=          { discEntry 21 }
+
+    discIdNumHeads     OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Number of heads."
+                 ::=          { discEntry 22 }
+
+    discIdBytesPerTrack     OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Number of bytes/track."
+                 ::=          { discEntry 23 }
+
+    discIdBytesPerSector     OBJECT-TYPE
+                 SYNTAX       INTEGER
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "Number of bytes/sector."
+                 ::=          { discEntry 24 }
+
+-- end sol
+    solEndMarker OBJECT-TYPE
+                 SYNTAX       INTEGER (0..1)
+                 ACCESS       read-only
+                 STATUS       mandatory
+                 DESCRIPTION  "End marker (for convenience)."
+                 ::=          { solEnd 1 }
+
+-- Traps
+    Heartbeat TRAP-TYPE
+      ENTERPRISE sol
+    DESCRIPTION "Heartbeat failed."
+    ::= 1
+
+    SOMInterrupt TRAP-TYPE
+      ENTERPRISE sol
+    DESCRIPTION "SOM driver interrupt occurred."
+    ::= 2
+
+    SOMCreateThreadError TRAP-TYPE
+      ENTERPRISE sol
+    DESCRIPTION "SOM driver create-thread-error occurred."
+    ::= 3
+
+    SOMIOCTLError TRAP-TYPE
+      ENTERPRISE sol
+    DESCRIPTION "SOM driver IOCTL-error occurred."
+    ::= 4
+
+    SOMWatchdog TRAP-TYPE
+      ENTERPRISE sol
+    DESCRIPTION "SOM watchdog timeout occurred."
+    ::= 5
+
+END

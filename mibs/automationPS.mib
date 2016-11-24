@@ -1,0 +1,198 @@
+-- ------------------------------------------------------------------------
+-- automationPS.mib
+--
+-- SIEMENS AG 
+-- Industry Sector
+--
+-- object definitions to manage the
+-- power supplies of a Siemens A&D system
+--
+-- Copyright (c) 2005-2008 Siemens AG
+-- All rights reserved.
+-- ------------------------------------------------------------------------
+
+AUTOMATION-PS-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    automationMgmt              FROM AUTOMATION-SMI
+    DisplayString               FROM SNMPv2-TC
+    Unsigned32,
+    OBJECT-TYPE,
+    NOTIFICATION-TYPE,
+    MODULE-IDENTITY             FROM SNMPv2-SMI
+    MODULE-COMPLIANCE,
+    OBJECT-GROUP,
+    NOTIFICATION-GROUP          FROM SNMPv2-CONF;
+
+automationPSMIB                 MODULE-IDENTITY
+    LAST-UPDATED                "200811100000Z"
+    ORGANIZATION                "Siemens AG"
+    CONTACT-INFO                "
+                                Siemens AG
+                                Industry Sector
+                                I IA SC IC RD 5
+                                Ingo Landgraf
+
+                                Postal: Gleiwitzer Strasse 555
+                                        Nuremberg-Moorenbrunn
+                                        D-90475
+                                Tel:    +49 911 895 3765
+                                E-mail: ingo.landgraf@siemens.com
+                                "
+    DESCRIPTION                 "
+                                Definition of management objects to
+                                manage the power supplies A&D product.
+                                "
+    REVISION                    "200811100000Z"
+    DESCRIPTION                 "Update the contact information."
+
+    REVISION                    "200804290000Z"
+    DESCRIPTION                 "Bugfixes, automationPSIndex not in
+                                 automationHwPSStatusChanged anymore."
+    REVISION                    "200511010000Z"
+    DESCRIPTION                 "Initial Version of the MIB module."
+    ::= { automationMgmt 5 }
+
+-- ------------------------------------------------------------------------
+-- groups of mib module
+-- ------------------------------------------------------------------------
+automationPSObjects             OBJECT IDENTIFIER ::= { automationPSMIB 1 }
+automationPSNotifications       OBJECT IDENTIFIER ::= { automationPSMIB 2 }
+automationPSConformance         OBJECT IDENTIFIER ::= { automationPSMIB 3 }
+
+-- ------------------------------------------------------------------------
+-- status of the power supply units
+-- ------------------------------------------------------------------------
+automationPSTable               OBJECT-TYPE
+    SYNTAX                      SEQUENCE OF AutomationPSEntry
+    MAX-ACCESS                  not-accessible
+    STATUS                      current     
+    DESCRIPTION                 "A table which contains information about
+                                 the systems power supplies."
+    ::= { automationPSObjects 1 }
+
+automationPSEntry               OBJECT-TYPE
+    SYNTAX                      AutomationPSEntry
+    MAX-ACCESS                  not-accessible
+    STATUS                      current
+    DESCRIPTION                 "
+                                A row in the power supply table. Entries
+                                cannot be created or deleted via SNMP 
+                                operations.
+                                "
+    INDEX                       { automationPSIndex }
+    ::= { automationPSTable 1 }
+
+AutomationPSEntry ::=           SEQUENCE {
+    automationPSIndex           Unsigned32,
+    automationPSStatus          INTEGER,
+    automationPSMask            INTEGER,
+    automationPSVoltageOutput   DisplayString
+}
+
+automationPSIndex               OBJECT-TYPE
+    SYNTAX                      Unsigned32
+    MAX-ACCESS                  not-accessible
+    STATUS                      current
+    DESCRIPTION                 "The unique value which identifies this
+                                entry."
+    ::= { automationPSEntry 1 }
+
+automationPSStatus              OBJECT-TYPE
+    SYNTAX                      INTEGER { inactive(1), active(2) }
+    MAX-ACCESS                  read-only
+    STATUS                      current
+    DESCRIPTION                 "The status of the correspondig PSU."
+    ::= { automationPSEntry 2 }
+
+automationPSMask                OBJECT-TYPE
+    SYNTAX                      INTEGER { not-checked(1), checked(2) }
+    MAX-ACCESS                  read-write
+    STATUS                      current
+    DESCRIPTION                 "The mask status of the corresponding PSU."
+    DEFVAL                      { not-checked }
+    ::= { automationPSEntry 3 }
+
+automationPSVoltageOutput       OBJECT-TYPE
+    SYNTAX                      DisplayString
+    MAX-ACCESS                  read-only
+    STATUS                      current
+    DESCRIPTION                 "
+                                The nominal voltage output of the
+                                power supply as marked at
+                                front panel, e. g. DC24V, AC220V
+                                "
+    ::= { automationPSEntry 4 }
+
+-- ------------------------------------------------------------------------
+-- events
+-- ------------------------------------------------------------------------
+automationPSNotificationsV2     OBJECT IDENTIFIER
+    ::= { automationPSNotifications 0 }
+
+automationHwPSStatusChanged     NOTIFICATION-TYPE
+    OBJECTS                     { automationPSStatus }
+    STATUS                      current
+    DESCRIPTION                 "
+                                The system triggers this event in case the
+                                status of a PSU changes.
+                                The variable bindings contain the status
+                                of of the affected PSU.
+                                "
+    ::= { automationPSNotificationsV2 1 }
+
+-- ------------------------------------------------------------------------
+-- conformance statements
+-- ------------------------------------------------------------------------
+--
+-- MIB groupings
+--
+automationPSGroups              OBJECT IDENTIFIER
+    ::= { automationPSConformance 1 }
+
+automationPSInfoGroup           OBJECT-GROUP
+    OBJECTS                     {
+                                automationPSStatus,
+                                automationPSVoltageOutput
+                                }
+    STATUS                      current
+    DESCRIPTION                 "Status and voltage of a PSU."
+    ::= { automationPSGroups 1 }
+
+automationPSMonitorGroup        OBJECT-GROUP
+    OBJECTS                     { automationPSMask }
+    STATUS                      current
+    DESCRIPTION                 "Enable monitoring of power supplies."
+    ::= { automationPSGroups 2 }
+
+automationPSStatusEvents        NOTIFICATION-GROUP
+    NOTIFICATIONS               { automationHwPSStatusChanged }
+    STATUS                      current
+    DESCRIPTION                 "Notifications about status changes of
+                                 the PSUs."
+    ::= { automationPSGroups 8 }
+
+--
+--  compliance specifications
+--
+automationPSCompliances         OBJECT IDENTIFIER
+    ::= { automationPSConformance 2 }
+
+automationPSInfoCompliance      MODULE-COMPLIANCE
+    STATUS                      current
+    DESCRIPTION                 "Basic requirements. Contains
+                                read-only objects."
+    MODULE                      -- compliance to the containing MIB module
+    MANDATORY-GROUPS            { automationPSInfoGroup }
+    ::= { automationPSCompliances 1 }
+
+automationPSMonitorCompliance   MODULE-COMPLIANCE
+    STATUS                      current
+    DESCRIPTION                 "Enables monitoring of power supplies.
+                                Support of notifications required."
+    MODULE                      -- compliance to the containing MIB module
+    MANDATORY-GROUPS            { automationPSInfoGroup,
+                                  automationPSMonitorGroup,
+                                  automationPSStatusEvents }
+    ::= { automationPSCompliances 2 }
+END

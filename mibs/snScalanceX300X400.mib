@@ -1,0 +1,3012 @@
+-- ----------------------------------------------------------------------
+-- prvmibScalanceX300X400Master.mib
+-- SIMATIC NET Industrial Ethernet Scalance X300/X400
+-- ScalanceX300/X400 Private MIB
+-- Copyright (c) 2007 Siemens AG
+-- ----------------------------------------------------------------------
+--
+-- MIB Module :   SN-SCALANCEX300-X400-PRIV-MIB
+--
+-- Revision   :   V2.1.0.0
+-- Date       :	  2007/03/02 
+-- 
+-- ----------------------------------------------------------------------
+SN-SCALANCEX300-X400-PRIV-MIB DEFINITIONS ::= BEGIN
+
+  IMPORTS                                                                                        
+          enterprises,IpAddress 				FROM RFC1155-SMI
+          
+          DisplayString 						FROM RFC1213-MIB
+          
+          TruthValue, RowStatus           		FROM SNMPv2-TC 
+          
+          PortList, dot1qStaticMulticastEntry,
+          dot1qVlanIndex                      	FROM Q-BRIDGE-MIB 
+          
+          OBJECT-TYPE 							FROM RFC-1212;        
+
+siemensAD       	OBJECT IDENTIFIER ::= { enterprises 4196 }
+adProductMibs   	OBJECT IDENTIFIER ::= { siemensAD 1 }
+simaticNet      	OBJECT IDENTIFIER ::= { adProductMibs 1 }
+iScalanceX      	OBJECT IDENTIFIER ::= { simaticNet 5 }
+iScalanceX300X400	OBJECT IDENTIFIER ::= { iScalanceX 4 }
+
+-- **********************************************************************
+--          SIMATIC NET SCALANCEX300X400 Private MIB
+-- **********************************************************************
+
+-- ----------------------------------------------------------------------
+-- SIMATIC NET SCALANCEX300X400 Object Identifier Definition
+-- ----------------------------------------------------------------------
+iScalanceX300X400Mib  	OBJECT IDENTIFIER ::= { iScalanceX300X400 100 }
+
+-- ----------------------------------------------------------------------
+-- Groups in SCALANCEX300X400-PRIVATE-MIB
+-- ----------------------------------------------------------------------
+-- ----------------------------------------------------------------------
+-- textual conventions
+-- ----------------------------------------------------------------------
+          MacAddress ::= OCTET STRING (SIZE (6))
+          -- a 6 octet address in the "canonical" order
+          -- defined by IEEE 802.1a, i.e., as if it were transmitted
+          -- least significant bit first, even though 802.5 (in
+          -- contrast to other n802.x protocols) requires MAC
+          -- addresses to be transmitted most significant bit first.
+          --
+          -- 16-bit addresses, if needed, are represented by setting
+          -- their upper 4 octets to all 0's, i.e., AAFF would be
+          -- represented as 00000000AAFF.
+
+-- ----------------------------------------------------------------------
+-- SIMATIC NET SCALANCEX300X400 Objects
+-- ----------------------------------------------------------------------
+snCommon              OBJECT IDENTIFIER ::= { iScalanceX300X400Mib 1 }
+snProductSpecific     OBJECT IDENTIFIER ::= { iScalanceX300X400Mib 2 }
+
+-- ----------------------------------------------------------------------
+-- SIMATIC NET SCALANCEX300X400 Common Objects
+-- ----------------------------------------------------------------------
+snDownload              OBJECT IDENTIFIER ::= { snCommon 5  }  
+snGen                   OBJECT IDENTIFIER ::= { snCommon 8  }
+snTcpIp                 OBJECT IDENTIFIER ::= { snCommon 10 }
+snCPlug                 OBJECT IDENTIFIER ::= { snCommon 11 }
+snTime                  OBJECT IDENTIFIER ::= { snCommon 12 }
+snPnio                  OBJECT IDENTIFIER ::= { snCommon 13 }
+
+-- ----------------------------------------------------------------------
+-- SIMATIC NET SCALANCEX300X400 Product Common Objects
+-- ----------------------------------------------------------------------
+
+
+-- ----------------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 COMMON DOWNLOAD MIB:
+-- ----------------------------------------------------------------------
+
+-- ----------------------------------------------------------------------
+-- Download Sub-Groups
+-- ----------------------------------------------------------------------
+-- snDownloadParams   OBJECT IDENTIFIER ::= {snDownload 1}
+
+-- ----------------------------------------------------------------------
+-- SIMATIC NET SCALANCEX300X400 Download Group
+-- This group contains all the download related parameters.
+-- ----------------------------------------------------------------------
+snDownloadParamsTftpServerHostName  OBJECT-TYPE
+        SYNTAX  DisplayString  (SIZE(0..64))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "IP address of the TFTP server (x.y.z.w)."
+        ::= { snDownload 1 }
+
+snDownloadParamsTftpServerHostPort OBJECT-TYPE
+	    SYNTAX  INTEGER (1..65535) 
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Port of the TFTP server host. Dafault value is 69."
+	    ::= { snDownload 2 }
+      
+snDownloadParamsControl  OBJECT-TYPE
+        SYNTAX  INTEGER { 
+          no-operation(1),	
+          start-load(2),
+          cancel(4)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Setting this object to start-load(2) causes the 
+                system to start a firmware downloading process."
+        ::= { snDownload 3 }
+
+snDownloadParamsStatus  OBJECT-TYPE
+        SYNTAX  INTEGER {
+	      save-load-in-progress(2),
+          save-load-inactive(3)
+	    }
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "The status of the TFTP client."
+        ::= { snDownload 4 }
+        
+snDownloadParamsError  OBJECT-TYPE
+        SYNTAX  DisplayString
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "The error status of the TFTP client."
+        ::= { snDownload 5 }
+        
+snDownloadFirmwareFile  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..32))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Full path name of file to be loaded from the TFTP
+                server host. Note that the file name must have the appropriate syntax
+                for the TFTP server host.
+                E.g., if the TFTP server host is a UNIX machine, the full file name
+                might be  /tftp/name.lad, or if the TFTP server host is a Windows
+                machine, the full file name might be  C:\tftp\name.lad."
+        ::= { snDownload 6 }
+
+snDownloadEventLogTableFile  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..32))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Full path name of file to be saved to the TFTP
+                server host. Note that the file name must have the appropriate syntax
+                for the TFTP server host.
+                E.g., if the TFTP server host is a UNIX machine, the full file name
+                might be  /tftp/name.txt, or if the TFTP server host is a Windows
+                machine, the full file name might be  C:\tftp\name.txt."
+        ::= { snDownload 9 }
+
+snDownloadEventLogTableControl  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          no-operation(1),
+          start-save(3),
+          cancel(4)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Setting this object to start-save(3) causes the
+                system to start a uploading process."
+        ::= { snDownload 10 }
+
+snDownloadConfigFile  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..32))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Full path name of file to be saved or loaded from the TFTP
+                server host. Note that the file name must have the appropriate syntax
+                for the TFTP server host.
+                E.g., if the TFTP server host is a UNIX machine, the full file name
+                might be  /tftp/name.txt, or if the TFTP server host is a Windows
+                machine, the full file name might be  C:\tftp\name.txt."
+        ::= { snDownload 11 }
+
+snDownloadConfigControl  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          no-operation(1),
+          start-load(2),
+	      start-save(3),
+	      cancel(4)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Setting this object to start-load(2) causes the
+                system to start a downloading process.
+                Setting this object to start-save(3) causes the
+                system to start a uploading process."
+        ::= { snDownload 12 }
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 COMMON GEN MIB:
+-- --------------------------------------------------------------
+snUserDescription  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..255))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Extended description of the station including user specific
+                information"
+        ::= { snGen 1 }
+
+snHwVersion  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..20))
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "The hardware version of the system."
+        ::= { snGen 2 }
+
+snBootStrapVersion  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..20))
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "The firmware version of the bootstrap program installed
+                in the system in the format."
+        ::= { snGen 3 }
+
+snSwVersion  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..255))
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "The software version of the system."
+        ::= { snGen 4 }
+
+snInfoSerialNr  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..20))
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "The serial number of this product."
+        ::= { snGen 6 }
+
+snSwitchTrapsEnable  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          not-supported(10),
+          enabled(1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Determines whether this device will
+                transmit traps to SNMP management stations.
+                This if this object is set to disable, no traps
+                will be sent.  Setting this object to enabled
+                is a necessary, but not a sufficient condition for
+                transmission of traps."
+        ::= { snGen 7 }
+	
+snTelnetEnable  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          not-supported(10),
+          enabled(1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Enable/Disable telnet daemon."
+        ::= { snGen 9 }
+
+snConsoleTimeOutEnable  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          enabled(1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION   "Enables or disables the time out for a Console session."
+        ::= { snGen 10 }
+
+snConsoleTimeOut  OBJECT-TYPE
+        SYNTAX  INTEGER (60..600)
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Time out for the Console session."
+        ::= { snGen 11 }
+
+snSNMPEnable  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          not-supported(10),
+          enabled(1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Determines whether this device may be
+                accessed by SNMP management stations"
+        ::= { snGen 12 }
+
+snRmonMode  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2),
+	      not-supported(10)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enable/Disable RMon functionality (statistics, history, alarm, events)."
+	    ::= { snGen 13 }
+	            
+snResetCounters  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          no-operation(1),
+	      reset-counters(2)
+        }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Reset all statistic counters."
+	    ::= { snGen 14 }
+  
+snEmailSMTPIpAddress  OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "IP address or host name of SMTP server."
+        ::= { snGen 20 }
+
+snEmailSMTPPort  OBJECT-TYPE
+        SYNTAX  INTEGER (1..65535)
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Number of TCP port to which the SMTP server will listen."
+        ::= { snGen 21 }
+
+snEmailEnable  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          enabled(1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "E-mail functionality for sending a message when an event occurred."
+        ::= { snGen 22 }
+
+snEmailAddress  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..255))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "E-mail address to which messages will be sent."
+        ::= { snGen 23 }
+        
+snFTPEnable  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          enabled(1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Enable/Disable FTP Daemon."
+        ::= { snGen 25 }          
+        
+snSpanOnOff  OBJECT-TYPE
+        SYNTAX INTEGER {
+          enable(1),
+          disable(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Enable/Disable Spanning Tree for the bridge.
+                When 'disable(2)', all ports of the device are placed in the
+                forwarding mode, regardless of current Spanning Tree state.
+                When 'enable(1)', the normal STP state transitions take place."
+        ::= { snGen 30 }
+
+snSysReset  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          noop(1),
+          restart(2),
+          save-and-restart(3),
+          set-to-memory-defaults-and-restart(4),
+          set-to-factory-defaults-and-restart(5)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Restart control of the Switch. noop(1) no operration.
+                restart(2) restarts the switch. save-and-restart(3)save the configuration 
+                and restart the switch. set-to-memory-defaults-and-restart(3)
+                set the the switch to the memory defaults and restart the switch.
+                set-to-factory-defaults-and-restart(5) the configuration of the switch is set to the factory
+                defaults and restart the switch."
+        ::= { snGen 31 }
+        
+snResetPowerUpCount  OBJECT-TYPE
+		SYNTAX  INTEGER
+		ACCESS  read-only
+		STATUS  mandatory
+		DESCRIPTION "The number of times the sytem was powered up."
+		::= { snGen 32 }                   
+
+snSaveConfiguration  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          no-operation(1),	
+          save(2),
+          save-in-progress(3)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "When SET to 'save(2)', all nonvolatile configuration
+ 	            parameters are saved to flash. Gets on this object returns
+ 	            'save-in-progress(3)' until the save operation completes, otherwise
+ 	            'no-operation(1)' is returned."
+        ::= { snGen 33 }      
+          
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 COMMON TCP/IP Address MIB
+-- --------------------------------------------------------------
+snIpVlanId  OBJECT-TYPE
+        SYNTAX  INTEGER (0..4094)
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Inband ports VLAN ID (VID) from 1 to 4094 or 0 if 
+                the VID is unassigned for the agent."
+        ::= { snTcpIp 1 }
+        
+snIpAddress  OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "IP address of the agent."
+        ::= { snTcpIp 2 }
+
+snIpSubnetMask  OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "IP subnet mask of the agent."
+        ::= { snTcpIp 3 }
+
+snIpDefaultGateway  OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "IP address of the default gateway."
+        ::= { snTcpIp 4 }
+
+snBootP  OBJECT-TYPE
+        SYNTAX  INTEGER {
+	      enabled (1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "The value enabled(1) will automatically run BOOTP
+                following SCALANCEX300X400 reset.
+                The value disabled(2) will inhibit BOOTP."
+        ::= { snTcpIp 5 }
+
+snDhcp  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          enabled-via-mac-address (1),
+	      disabled (2),
+          enabled-via-client-id (3),
+	      enabled-via-sysname (4),
+	      enabled-via-nameofstation (5)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "The value enabled-via-mac-address(1) runs DHCP, enabled-via-client-id(3) runs DHCP
+				with option ClientId, enabled-via-sysname(4) runs DHCP with the sysname as ClientId, 
+				enabled-via-nameofstation(5) runs DHCP with the name of station as ClientId.
+				The value disabled(2) will inhibit DHCP."
+        ::= { snTcpIp 6 }	
+	
+snClientId OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..255))
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "An administratively-assigned name for this DHCP/DCP
+ 				client."
+        ::= { snTcpIp 7 }
+
+snDcp  OBJECT-TYPE
+        SYNTAX  INTEGER {
+	      enabled (1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "The value enabled(1) will automatically run DCP (Detection & Configuration Protocoll).
+                The value disabled(2) will inhibit DCP."
+        ::= { snTcpIp 8 }
+
+snMacAddressBase  OBJECT-TYPE
+        SYNTAX  MacAddress
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "MAC address base of the SCALANCEX300X400."
+        ::= { snTcpIp 10 }
+        
+snOutbandPortIpAddress  OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Outband Port IP address of the agent."
+        ::= { snTcpIp 21 }
+
+snOutbandPortIpSubnetMask  OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Outband Port IP subnet mask of the agent."
+        ::= { snTcpIp 22 }        
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 COMMON CPLUG MIB
+-- --------------------------------------------------------------
+snCPlugStatus  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          accepted(1),
+          not-present(2),
+          not-accepted(3),
+          not-accepted-crc-error(4),
+          not-accepted-group-error(5),
+          not-accepted-type-error(6),
+          not-accepted-version-error(7),
+          not-accepted-fstype-error(8),
+          not-accepted-config-error(9)
+        }
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "Current status of the C-PLUG: 
+                accepted(1) C-PLUG is completely accepted (and used) by this device.
+                not-present(2) C-PLUG is (physically) not present.
+                not-accepted(3) C-PLUG is not accepted (reason unknown).
+          	    not-accepted-crc-error(4) C-PLUG is not accepted, because header CRC is wrong.
+                not-accepted-group-error(5) C-PLUG is not accepted, reason: device group mis-match,   see snCPlugGroupDetected for details.
+                not-accepted-type-error(6) C-PLUG is not accepted, reason: device type mismatch, see snCPlugDeviceDetected for details.
+                not-accepted-version-error(7) C-PLUG is not accepted, wrong configuration revision, see snCPlugConfigRevision for details.
+                not-accepted-fstype-error(8) C-PLUG is not accepted, reason: wrong flash file sytem,  see snCPlugFilesysType for details.
+                not-accepted-config-error(9) C-PLUG is not accepted, because unable to load
+                configuration."
+        ::= { snCPlug 1 }
+
+snCPlugGroupDetected  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..32))
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "Device group that is currently read from C-PLUG: 
+                'EMPTY' detect a cleaned or a new C-PLUG.
+                'SCALANCE X-400'  detect a C-PLUG that is formatted for X-400 series.
+                'SCALANCE X-200'  detect a C-PLUG that is formatted for X-200 series.
+                'SCALANCE W-700' detect a C-PLUG that is formatted for W-700series.
+                'SCALANCE S-600'  detect a C-PLUG that is formatted for S-600 series.
+                'CP300' detect a C-PLUG that is formatted for CP300 series.
+                'CP400' detect a C-PLUG that is formatted for CP400 series.
+                'IE/PB-Link'  detect a C-PLUG that is formatted for IE/PB-Link series.
+                'IE/ASi-Link' detect a C-PLUG that is formatted for IE/ASi-Link series.
+                'SINAUT' detect a C-PLUG that is formatted for SIMAUT series.
+                'UNKNOWN' detect a C-PLUG with an unknown (could be too new) device group.
+                'ERROR' detect a C-PLUG with an invalid device group value."
+        ::= { snCPlug 2 }
+      
+snCPlugDeviceDetected  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..32))
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "Device type that is currently read from the C-PLUG:
+	            this value Depends on the device group, and could be (for example):
+	            'SCALANCE X414-3E'
+	            'SCALANCE X408-2'
+	            'SCALANCE X208'
+	            ...
+	            'SCALANCE W788-1PRO'
+	            ...
+	            'CP 443-1 Advanced'
+	            ..."
+        ::= { snCPlug 3 }
+ 
+snCPlugConfigRevision  OBJECT-TYPE
+        SYNTAX  INTEGER 
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "Device/group configuration revision found on the C-PLUG: 
+                Each device or device group has its own configuration revision value
+                to decide wether  a C-PLUG data could be accepted, has to be migrated or could not be used at all.
+				A value (0) means error, a value (255) means empty."
+        ::= { snCPlug 4 }
+
+snCPlugFilesysType  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          tffs(1),
+          simatic-net-fs(2),
+          unknown(253),
+          error(254),
+          empty(255)	
+        }
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "Type of the filesystem on the C-PLUG flash."
+        ::= { snCPlug 5 }
+      
+snCPlugFilesysSize  OBJECT-TYPE
+        SYNTAX  INTEGER 
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "Maximum size of the filesystem on the C-PLUG flash in bytes."
+        ::= { snCPlug 6 }
+      
+snCPlugFilesysUsage  OBJECT-TYPE
+        SYNTAX  INTEGER 
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "Current usage of the filesystem on the C-PLUG flash in bytes."
+        ::= { snCPlug 7 }
+      
+snCPlugInfoString  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..255))
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "Shows the information string stored in the C-PLUG"
+        ::= { snCPlug 8 }
+
+snCPlugFormat  OBJECT-TYPE
+        SYNTAX  INTEGER {
+	      no-operation(1),
+	      format-int(2),
+	      format-def(3),
+	      clean(4),
+	      format-in-progress(5)		
+	    }        
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Modify content of the C-PLUG as follows:
+                'format-int(2)' format the C-PLUG for this device and copy device internal values into
+                C-PLUG (if internal values are present). May be supported only by some devices. 
+                'format -def(3)' format the C-PLUG for this device and copy default values into C-PLUG
+                (if any default values are defined). May be supported only by some devices. Restart required.
+                'clean(4' format the C-PLUG (physically), this will result in a complete
+                empty C-PLUG (if you remove C-PLUG after next power down). "
+        ::= { snCPlug 9 }
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 COMMON TIME MIB
+-- --------------------------------------------------------------
+snSwitchTime  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..64))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Show/Set -MM/DD/YYYY hh:mm:ss- date and time of the switch."
+        ::= { snTime 1 }
+
+snLastSynchronisationTime  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..64))
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "Shows the last time when the snSwitchTime was set."
+        ::= { snTime 2 }
+
+snLastSynchronisationType  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          not-set(1),
+          manually(2),
+          by-sntp(3),
+          by-simatic-synchronal(4),
+          by-simatic-not-synchronal(5)
+        }
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "Mechanism, which set the snSwitchTime at last."
+      	::= { snTime 3 }
+                
+snSNTPEnable  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          enabled (1),
+          disabled (2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Enables/Disables Simple Network Time Protocol (SNTP)."
+        ::= { snTime 4 }
+
+snSNTPIpAddress  OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "IP Address of the SNTP server (x.y.z.w)."
+        ::= { snTime 5 }
+
+snSNTPPortNumber  OBJECT-TYPE
+	    SYNTAX  INTEGER (1..65535) 
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Port of the SNTP server host. Dafault value is 123."
+	    ::= { snTime 6 }
+
+snSNTPTimeShift  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          timeSNTP-minus-12h (1),
+          timeSNTP-minus-11h (2),
+          timeSNTP-minus-10h (3),
+          timeSNTP-minus-09h (4),
+          timeSNTP-minus-08h (5),
+          timeSNTP-minus-07h (6),
+          timeSNTP-minus-06h (7),
+          timeSNTP-minus-05h (8),
+          timeSNTP-minus-04h (9),
+          timeSNTP-minus-03h (10),
+          timeSNTP-minus-02h (11),
+          timeSNTP-minus-01h (12),
+          timeSNTP-plus-minus-00h (13),
+          timeSNTP-plus-01h (14),
+          timeSNTP-plus-02h (15),
+          timeSNTP-plus-03h (16),
+          timeSNTP-plus-04h (17),
+          timeSNTP-plus-05h (18),
+          timeSNTP-plus-06h (19),
+          timeSNTP-plus-07h (20),
+          timeSNTP-plus-08h (21),
+          timeSNTP-plus-09h (22),
+          timeSNTP-plus-10h (23),
+          timeSNTP-plus-11h (24),
+          timeSNTP-plus-12h (25),
+          timeSNTP-plus-13h (26)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Time difference between SNTP server and switch time."
+        ::= { snTime 7 }
+        
+snSNTPSamplingInterval  OBJECT-TYPE
+	    SYNTAX  INTEGER (1..1440) 
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Sampling interval of the SNTP Requests in minutes. Only if the snSNTPIpAddress is set."
+	    ::= { snTime 8 }               
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 COMMON PNIO MIB
+-- --------------------------------------------------------------
+snPnioEnable  OBJECT-TYPE
+        SYNTAX  INTEGER {
+	      enabled (1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "The value enabled(1) will automatically run PNIO.
+                The value disabled(2) will inhibit PNIO."
+        ::= { snPnio 1 }
+        
+snPnioInDataExchange  OBJECT-TYPE
+        SYNTAX  INTEGER {
+	      online (1),
+          offline (2)
+        }
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "Show the state of PNIOInDataExchange."
+        ::= { snPnio 2 }
+        
+snPnioNameOfStation OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..240))
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "Name of Station of the device."
+        ::= { snPnio 3 }      
+
+snPnioInDataExchangeControl  OBJECT-TYPE
+        SYNTAX  INTEGER {
+	      allow-online (1),
+          force-to-offline (2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "allow-online (1) allows the device to change in PNIOInDataExchange online.
+        		 force-to-offline (2) force the device to PNIOInDataExchange offline."
+        ::= { snPnio 4 }
+                   
+-- -------------------------------------------------------------
+-- SIMATIC NET SCALANCEX300X400 Product Specific Objects
+-- -------------------------------------------------------------
+snX300X400Switch		  		OBJECT IDENTIFIER ::= { snProductSpecific 1 }
+snX300X400Report		  		OBJECT IDENTIFIER ::= { snProductSpecific 2 }
+snX300X400Port   		  		OBJECT IDENTIFIER ::= { snProductSpecific 3 }
+snX300X400Redundancy	  		OBJECT IDENTIFIER ::= { snProductSpecific 4 }
+snX300X400LoadLimits	  		OBJECT IDENTIFIER ::= { snProductSpecific 5 }
+snX300X400ModuleIdent	  		OBJECT IDENTIFIER ::= { snProductSpecific 6 }
+snX300X400Standby    	  		OBJECT IDENTIFIER ::= { snProductSpecific 7 }
+snX300X400IGMP  		  		OBJECT IDENTIFIER ::= { snProductSpecific 9 }
+snX300X400L3  	     	  		OBJECT IDENTIFIER ::= { snProductSpecific 10 }
+snX300X400Observer     	  		OBJECT IDENTIFIER ::= { snProductSpecific 11 }
+snX300X400QoS	     	  		OBJECT IDENTIFIER ::= { snProductSpecific 12 }
+snX300X400VirtualCableTester 	OBJECT IDENTIFIER ::= { snProductSpecific 13 }
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 SPECIFIC SWITCH MIB
+-- --------------------------------------------------------------
+snX300X400SwitchAgingEnable  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enable/Disable auto-aging functionality of the learning table."
+	    ::= { snX300X400Switch 3 }
+	    	    
+snX300X400SwitchSnifferDest  OBJECT-TYPE
+	    SYNTAX  INTEGER (1..26)
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Destination port for traffic mirroring."
+	    ::= { snX300X400Switch 10 }
+
+snX300X400SwitchSnifferSrc  OBJECT-TYPE
+	    SYNTAX  INTEGER (1..26) 
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Source port for traffic mirroring."
+	    ::= { snX300X400Switch 11 }
+
+snX300X400SwitchSnifferEnable  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enable/Disable mirroring functionality."
+	    ::= { snX300X400Switch 12 }
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 SPECIFIC REPORT MIB
+-- --------------------------------------------------------------
+snX300X400FaultState  OBJECT-TYPE
+    	SYNTAX  INTEGER {
+   	   	  noFault(1),
+      	  fault(2)
+    	}
+    	ACCESS  read-only
+    	STATUS  mandatory
+    	DESCRIPTION "Indicates SCALANCE X300X400 fault state
+                (state of fault LED/signaling contact)."
+    	::= { snX300X400Report 1 }
+
+snX300X400SignalledFaults  OBJECT-TYPE
+    	SYNTAX  Counter 
+    	ACCESS  read-only
+    	STATUS  mandatory
+    	DESCRIPTION "Number of signalled faults."    
+    	::= { snX300X400Report 2 }
+    	
+snX300X400PowerSupply1State  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      inactive(1),
+	      active(2)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "State of power supply line 1."
+	    ::= { snX300X400Report 4 }
+
+snX300X400PowerSupply2State  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      inactive(1),
+	      active(2)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION	"State of power supply line 2."
+	    ::= { snX300X400Report 5 }
+
+snX300X400PowerSupply1Mask  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Mask of power supply line 1."
+	    ::= { snX300X400Report 6 }
+
+snX300X400PowerSupply2Mask  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Mask of power supply line 2."
+	    ::= { snX300X400Report 7 }
+
+-- --------------------------------------------------------------
+-- Report Event Sub-Group
+-- --------------------------------------------------------------
+snX300X400ReportEventTable  OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX300X400ReportEventEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Report Event configuration table."
+	    ::= { snX300X400Report 90 }
+
+snX300X400ReportEventEntry  OBJECT-TYPE
+	    SYNTAX  SnX300X400ReportEventEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Report Events table rows entries."
+	    INDEX   { snX300X400ReportEventIndex }
+	    ::= { snX300X400ReportEventTable 1 }
+
+SnX300X400ReportEventEntry ::=	SEQUENCE {
+		snX300X400ReportEventIndex			       INTEGER,
+	    snX300X400ReportEventColdWarmStart         INTEGER,
+	    snX300X400ReportEventLinkChange	           INTEGER,
+	    snX300X400ReportEventAuthenticationFailure INTEGER,
+	    snX300X400ReportEventRmonAlarm	           INTEGER,
+	    snX300X400ReportEventPowerChange	       INTEGER,
+	    snX300X400ReportEventRmStateChange	       INTEGER,
+	    snX300X400ReportEventRSTP	               INTEGER,
+		snX300X400ReportEventFault				   INTEGER,
+		snX300X400ReportEventStandbyStateChange    INTEGER
+	    }
+
+snX300X400ReportEventIndex  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      eMail(1),
+	      trap(2),
+		  logTable(3)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Index of columns : E-Mail = 1, Traps = 2, LogTable = 3."
+	    ::= { snX300X400ReportEventEntry 1 }
+
+snX300X400ReportEventColdWarmStart  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables cold/warm start notification."
+	    ::= { snX300X400ReportEventEntry 2 }
+
+snX300X400ReportEventLinkChange  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables link change notification."
+	    ::= { snX300X400ReportEventEntry 3 }
+
+snX300X400ReportEventAuthenticationFailure  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables authentication failure notification."
+	    ::= { snX300X400ReportEventEntry 4 }
+
+snX300X400ReportEventRmonAlarm  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables RMON alarm notification."
+	    ::= { snX300X400ReportEventEntry 5 }
+
+snX300X400ReportEventPowerChange  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables power change notification."
+	    ::= { snX300X400ReportEventEntry 6 }
+
+snX300X400ReportEventRmStateChange  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables RM state change notification."
+	    ::= { snX300X400ReportEventEntry 7 }
+
+snX300X400ReportEventRSTP  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables (R)STP notification."
+	    ::= { snX300X400ReportEventEntry 8 }
+	    
+snX300X400ReportEventFault  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables fault notification."
+	    ::= { snX300X400ReportEventEntry 9 }
+	    
+snX300X400ReportEventStandbyStateChange  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables standby state change notification."
+	    ::= { snX300X400ReportEventEntry 10 }            
+
+-- --------------------------------------------------------------
+-- Report Digital Input Sub-Group
+-- --------------------------------------------------------------
+snX300X400ReportDigitalInEventTable  OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX300X400ReportDigitalInEventEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Digital-In event configuration table."
+	    ::= { snX300X400Report 91 }
+
+snX300X400ReportDigitalInEventEntry  OBJECT-TYPE
+	    SYNTAX  SnX300X400ReportDigitalInEventEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Digital-In events table rows entries."
+	    INDEX   { snX300X400ReportDigitalInIndex }
+	    ::= { snX300X400ReportDigitalInEventTable 1 }
+
+SnX300X400ReportDigitalInEventEntry ::=	SEQUENCE {
+	    snX300X400ReportDigitalInIndex	      INTEGER,
+	    snX300X400ReportDigitalInName	      DisplayString,
+	    snX300X400ReportDigitalInMailEvent    INTEGER,
+	    snX300X400ReportDigitalInTrapEvent    INTEGER,
+	    snX300X400ReportDigitalInLogEvent	  INTEGER,
+	    snX300X400ReportDigitalInState	      INTEGER
+	    }
+
+snX300X400ReportDigitalInIndex  OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Index of Digital-In."
+	    ::= { snX300X400ReportDigitalInEventEntry 1 }
+
+snX300X400ReportDigitalInName  OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..64))
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Name of Digital-In."
+	    ::= { snX300X400ReportDigitalInEventEntry 2 }
+
+snX300X400ReportDigitalInMailEvent  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2),
+		  notSupported(3)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enables/Disables Digital-In E-Mail notification."
+	    ::= { snX300X400ReportDigitalInEventEntry 3 }
+
+snX300X400ReportDigitalInTrapEvent  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2),
+		  notSupported(3)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enables/Disables Digital-In Trap notification."
+	    ::= { snX300X400ReportDigitalInEventEntry 4 }
+
+snX300X400ReportDigitalInLogEvent  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2),
+		  notSupported(3)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enables/Disables Digital-In LogTable notification."
+	    ::= { snX300X400ReportDigitalInEventEntry 5 }
+
+snX300X400ReportDigitalInState  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      on(1),
+	      off(2),
+		  notSupported(3)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "State of the Digital-In."
+	    ::= { snX300X400ReportDigitalInEventEntry 6 }
+
+-- --------------------------------------------------------------
+-- Report Fault State Sub-Group
+-- --------------------------------------------------------------
+snX300X400ReportFaultStateTable  OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX300X400ReportFaultStateEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Fault state table."
+	    ::= { snX300X400Report 92 }
+
+snX300X400ReportFaultStateEntry  OBJECT-TYPE
+	    SYNTAX  SnX300X400ReportFaultStateEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Fault state table rows entries."
+	    INDEX   { snX300X400ReportFaultIndex }
+	    ::= { snX300X400ReportFaultStateTable 1 }
+
+SnX300X400ReportFaultStateEntry ::= SEQUENCE {
+	    snX300X400ReportFaultIndex     INTEGER,
+	    snX300X400ReportFaultState     DisplayString
+	    }
+
+snX300X400ReportFaultIndex  OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Index of fault state table."
+	    ::= { snX300X400ReportFaultStateEntry 1 }
+
+snX300X400ReportFaultState  OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..255))
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Fault state."
+		::= { snX300X400ReportFaultStateEntry 2 }
+	        	                                                               
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 SPECIFIC PORT MIB
+-- --------------------------------------------------------------
+-- --------------------------------------------------------------
+-- PortTable Sub-Group
+-- -------------------------------------------------------------- 
+snX300X400PortTable  OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX300X400PortEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION	"Table containing per-port objects in the form of private
+	            extensions of interface objects."
+	    ::= { snX300X400Port 90 }
+
+snX300X400PortEntry  OBJECT-TYPE
+	    SYNTAX  SnX300X400PortEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Interface entry containing objects at the
+	            subnetwork layer and below for a particular
+	            interface."
+	    INDEX   { snX300X400PortIndex }
+	    ::= { snX300X400PortTable 1 }
+
+SnX300X400PortEntry ::= SEQUENCE {
+        snX300X400PortIndex            	INTEGER,
+        snX300X400PortFaultMaskState   	INTEGER,
+        snX300X400PortLockState        	INTEGER,
+        snX300X400PortBackPressure     	INTEGER,
+        snX300X400PortStandbyMaskState 	INTEGER,
+        snX300X400PortBroadcastBlocking	INTEGER
+        }
+
+snX300X400PortIndex  OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION	"Unique number for each interface. The number is in the range
+	            1 to 26. The number for each interface must remain
+	            constant at least from one re-initialization of the entity's
+	            network management system to the next re-initialization."
+	    ::= { snX300X400PortEntry 1 }
+
+snX300X400PortFaultMaskState  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Mask for checking link state of the port.
+	            If a link of a masked (checked) port is down then
+	            a fault will be generated."
+	    ::= { snX300X400PortEntry 2 }
+	    
+snX300X400PortLockState  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      unlocked(1),        
+	      locked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory    
+	    DESCRIPTION "Lock state of the port."
+	    ::= { snX300X400PortEntry 3 }
+	    
+snX300X400PortBackPressure  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Back pressure mode for the half-duplex port."
+	    ::= { snX300X400PortEntry 5 }
+	    
+snX300X400PortStandbyMaskState  OBJECT-TYPE
+    	SYNTAX  INTEGER {
+      	  checked(1),
+          notChecked(2)
+    	}    
+    	ACCESS  read-write
+    	STATUS  mandatory
+    	DESCRIPTION "Mask for standby ports." 
+    	::= { snX300X400PortEntry 6 }
+    	
+snX300X400PortBroadcastBlocking  OBJECT-TYPE
+    	SYNTAX  INTEGER {
+      	  enabled(1),
+          disabled(2)
+    	}    
+    	ACCESS  read-write
+    	STATUS  mandatory
+    	DESCRIPTION "Enable / Disable broadcast blocking. Used to select which ports are 
+    			prevented from being forwarded broadcast packets." 
+    	::= { snX300X400PortEntry 7 }     	 
+
+          
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 SPECIFIC REDUNDANCY MIB
+-- --------------------------------------------------------------
+snX300X400RingRedundancyMode  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      ringRedundancyOff(1),
+	      ringRedundancyOn(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Ring Redundancy Mode."
+	    ::= { snX300X400Redundancy 1 }
+	    
+snX300X400RmMode  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      rmOff(1),
+	      rmOn(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "RM mode."
+	    ::= { snX300X400Redundancy 2 }
+
+snX300X400RmState  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      rmPassive(1),
+	      rmActive(2)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "RM State."
+	    ::= { snX300X400Redundancy 3 }
+
+snX300X400RmStateChanges  OBJECT-TYPE
+	    SYNTAX  Counter
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Number of changes to RM active state."
+	    ::= { snX300X400Redundancy 4 }
+    
+snX300X400StaticPort  OBJECT-TYPE
+	    SYNTAX  INTEGER (1..26)
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Portnumber of static port."
+	    ::= { snX300X400Redundancy 5 }
+
+snX300X400IsolatedPort  OBJECT-TYPE
+	    SYNTAX  INTEGER (1..26)
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Portnumber of isolated port."
+	    ::= { snX300X400Redundancy 6 }
+  
+snX300X400TestMaxDelay  OBJECT-TYPE
+	    SYNTAX  INTEGER (0..200)
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION	"Measured maximum delay of RM test telegrams."
+	    ::= { snX300X400Redundancy 7 }
+
+snX300X400ResetCounters  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      no-operation(1),
+	      reset(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Reset all counters of Redundancy protocol software."
+	    ::= { snX300X400Redundancy 8 
+	    }	
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 SPECIFIC LOAD LIMITS MIB
+-- --------------------------------------------------------------
+-- --------------------------------------------------------------
+-- Ingress throttling Sub-Group
+-- --------------------------------------------------------------
+snX300X400LoadLimitsIngressThrottlingTable  OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX300X400LoadLimitsIngressThrottlingEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Ingress trottling table."
+	    ::= { snX300X400LoadLimits 90 }
+
+snX300X400LoadLimitsIngressThrottlingEntry  OBJECT-TYPE
+	    SYNTAX  SnX300X400LoadLimitsIngressThrottlingEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Ingress trottling table rows entries."
+	    INDEX   { snX300X400LoadLimitsIngressThrottlingBlockIndex }
+	    ::= { snX300X400LoadLimitsIngressThrottlingTable 1 }
+
+SnX300X400LoadLimitsIngressThrottlingEntry ::= SEQUENCE {
+	    snX300X400LoadLimitsIngressThrottlingBlockIndex	            INTEGER,
+	    snX300X400LoadLimitsIngressThrottlingBlockName	            DisplayString,
+	    snX300X400LoadLimitsIngressThrottlingBlockBroadcast         INTEGER,
+	    snX300X400LoadLimitsIngressThrottlingBlockMulticast         INTEGER,
+	    snX300X400LoadLimitsIngressThrottlingBlockDLF	            INTEGER,
+	    snX300X400LoadLimitsIngressThrottlingBlockRateLimit	        INTEGER
+	    }
+
+snX300X400LoadLimitsIngressThrottlingBlockIndex  OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Index of ingress throttling block."
+	    ::= { snX300X400LoadLimitsIngressThrottlingEntry 1 }
+
+snX300X400LoadLimitsIngressThrottlingBlockName  OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..64))
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Name of ingress throttling block."
+	    ::= { snX300X400LoadLimitsIngressThrottlingEntry 2 }
+
+snX300X400LoadLimitsIngressThrottlingBlockBroadcast  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2)
+		}
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enables/Disables block ingress broadcast throttling."
+	    ::= { snX300X400LoadLimitsIngressThrottlingEntry 3 }
+
+snX300X400LoadLimitsIngressThrottlingBlockMulticast  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2)
+		}
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enables/Disables block ingress multicast throttling."
+	    ::= { snX300X400LoadLimitsIngressThrottlingEntry 4 }
+
+snX300X400LoadLimitsIngressThrottlingBlockDLF  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2)
+		}
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enables/Disables block ingress DLF 
+	            (Destination Lookup Failure) throttling."
+	    ::= { snX300X400LoadLimitsIngressThrottlingEntry 5 }
+
+snX300X400LoadLimitsIngressThrottlingBlockRateLimit  OBJECT-TYPE
+	    SYNTAX  INTEGER (1..262143)
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Rate in units of packets per second per port."
+	    ::= { snX300X400LoadLimitsIngressThrottlingEntry 6 }
+
+-- --------------------------------------------------------------
+-- Rate Limiting Sub-Group 
+-- --------------------------------------------------------------
+snX300X400LoadLimitsRateLimitingTable  OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX300X400LoadLimitsRateLimitingEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Rate Limiting table."
+	    ::= { snX300X400LoadLimits 91 }
+
+snX300X400LoadLimitsRateLimitingEntry  OBJECT-TYPE
+	    SYNTAX  SnX300X400LoadLimitsRateLimitingEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Rate Limiting table rows entries."
+	    INDEX   { snX300X400LoadLimitsRateLimitingIndex }
+	    ::= { snX300X400LoadLimitsRateLimitingTable 1 }
+
+SnX300X400LoadLimitsRateLimitingEntry ::= SEQUENCE {
+	    snX300X400LoadLimitsRateLimitingIndex	    		INTEGER,
+	    snX300X400LoadLimitsIngressRateLimitingMode	        INTEGER,
+	    snX300X400LoadLimitsIngressRateLimitingRate         INTEGER,
+	    snX300X400LoadLimitsEgressRateLimitingRate			INTEGER
+	    }
+
+snX300X400LoadLimitsRateLimitingIndex  OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Unique number for each interface.Based on snX300X400PortIndex"
+	    ::= { snX300X400LoadLimitsRateLimitingEntry 1 }
+
+snX300X400LoadLimitsIngressRateLimitingMode  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+          limit-and-count-all-frames(2),
+	      limit-and-count-Broadcast-and-Multicast-and-DLF (3),
+	      limit-and-count-Broadcast-and-Multicast-frames-only (4),
+	      limit-and-count-Broadcast-frames-only (5)
+		}
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Ingress Limit Mode. These mode determine what kinds of frames are
+	         limited and counted against ingress limiting as follows:
+              - limit-and-count-all-frames(2)
+	      	  - limit-and-count-Broadcast-and-Multicast-and-DLF (3)
+	      	  - limit-and-count-Broadcast-and-Multicast-frames-only (4)
+	      	  - limit-and-count-Broadcast-frames-only (5)"
+	    ::= { snX300X400LoadLimitsRateLimitingEntry 2 }
+
+snX300X400LoadLimitsIngressRateLimitingRate  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      limiting-off(1),
+	      limit-128K-bit-per-second (2),
+	      limit-256K-bit-per-second (3),
+	      limit-512K-bit-per-second (4),
+	      limit-1M-bit-per-second (5),
+	      limit-2M-bit-per-second (6),
+	      limit-4M-bit-per-second (7),
+	      limit-8M-bit-per-second (8),
+	      limit-16M-bit-per-second (9),
+	      limit-32M-bit-per-second (10),
+	      limit-64M-bit-per-second (11),
+	      limit-128M-bit-per-second (12),
+	      limit-256M-bit-per-second (13)
+	      }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Ingress data rate limit."
+	    ::= { snX300X400LoadLimitsRateLimitingEntry 3 } 
+
+snX300X400LoadLimitsEgressRateLimitingRate  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      limiting-off(1),	
+	      limit-128K-bit-per-second (2),
+	      limit-256K-bit-per-second (3),
+	      limit-512K-bit-per-second (4),
+	      limit-1M-bit-per-second (5),
+	      limit-2M-bit-per-second (6),
+	      limit-4M-bit-per-second (7),
+	      limit-8M-bit-per-second (8),
+	      limit-16M-bit-per-second (9),
+	      limit-32M-bit-per-second (10),
+	      limit-64M-bit-per-second (11),
+	      limit-128M-bit-per-second (12),
+	      limit-256M-bit-per-second (13)
+	      }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Egress data rate limit."
+	    ::= { snX300X400LoadLimitsRateLimitingEntry 11 }	    
+	    
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 SPECIFIC MODUL IDENT MIB
+-- --------------------------------------------------------------
+
+snX300X400ModuleIdentChangeCounter  OBJECT-TYPE
+		SYNTAX  INTEGER
+		ACCESS  read-only
+		STATUS  mandatory
+		DESCRIPTION "Counter for every change in the module identification table"
+		::= { snX300X400ModuleIdent 1 } 
+		
+-- --------------------------------------------------------------
+-- Modul Ident Table Sub-Group
+-- --------------------------------------------------------------
+snX300X400ModuleIdentTable  OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX300X400ModuleIdentEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Modul identification table."
+	    ::= { snX300X400ModuleIdent 90 }
+
+snX300X400ModuleIdentEntry  OBJECT-TYPE
+	    SYNTAX  SnX300X400ModuleIdentEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Modul identification rows entries."
+	    INDEX   { snX300X400ModuleIdentIndex }
+	    ::= { snX300X400ModuleIdentTable 1 }
+
+SnX300X400ModuleIdentEntry ::= SEQUENCE {
+	    snX300X400ModuleIdentIndex 	            INTEGER,
+	    snX300X400ModuleIdentName  	            DisplayString,
+	    snX300X400ModuleIdentMLFB	            DisplayString,
+	    snX300X400ModuleIdentHWVersion          DisplayString,
+	    snX300X400ModuleIdentState	            INTEGER,
+	    snX300X400ModuleIdentFirstInterface	    INTEGER,
+	    snX300X400ModuleIdentLastInterface	    INTEGER,
+	    snX300X400ModuleIdentModuleType	        DisplayString,
+	    snX300X400ModuleIdentInterfaceType	    DisplayString            
+	    }
+
+snX300X400ModuleIdentIndex  OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Index of modul identification table."
+	    ::= { snX300X400ModuleIdentEntry 1 }
+
+snX300X400ModuleIdentName  OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..255))
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Name of the module."
+		::= { snX300X400ModuleIdentEntry 2 }
+
+snX300X400ModuleIdentMLFB  OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..255))
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "MLFB Number of the module."
+		::= { snX300X400ModuleIdentEntry 3 }
+		 
+snX300X400ModuleIdentHWVersion  OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..255))
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Hardware version of the module."
+		::= { snX300X400ModuleIdentEntry 4 }		 		 
+
+snX300X400ModuleIdentState  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      empty(1),
+	      valid(2),
+	      invalid(3)
+		}
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "State of module slot. empty(1)- no module in slot. valid(2) - module
+	            in slot and no error. invalid(3)- wrong module in slot."
+	    ::= { snX300X400ModuleIdentEntry 5 }
+	    
+snX300X400ModuleIdentFirstInterface  OBJECT-TYPE
+	    SYNTAX  INTEGER 
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "First interfacenumber of module."
+	    ::= { snX300X400ModuleIdentEntry 6 }
+	    
+snX300X400ModuleIdentLastInterface  OBJECT-TYPE
+	    SYNTAX  INTEGER 
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Last interfacenumber of module."
+	    ::= { snX300X400ModuleIdentEntry 7 }	    	    
+
+snX300X400ModuleIdentModuleType  OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..255))
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Moduletype."
+		::= { snX300X400ModuleIdentEntry 8 }
+
+snX300X400ModuleIdentInterfaceType  OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..255))
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Interfacetype."
+		::= { snX300X400ModuleIdentEntry 9 }
+	    
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 SPECIFIC STANDBY MIB
+-- --------------------------------------------------------------
+snX300X400StandbyMode OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      standbyOn(1),
+	      standbyOff(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Standby connection mode."
+	    ::= { snX300X400Standby 1 }
+	    
+snX300X400StandbyConnectionName  OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..32))
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "The standby connection name (Max 32 Symbol)."
+	    ::= { snX300X400Standby 3 }
+
+snX300X400StandbyState OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      standbyMasterPassive(1),
+	      standbySlavePassive(3),
+	      standbyMasterActive(5),
+	      standbySlaveActive(7),
+	      standbyMasterPassive-lost(17),
+	      standbySlavePassive-lost(19),
+	      standbyMasterActive-lost(21),
+	      standbySlaveActive-lost(23),
+	      standbyWaitingForPartner(257),
+          standbyDisabled(300)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Standby connection state.
+	      		Bit 0 is always 1, bit 1 is Master/Slave, 
+	      		bit 2 is Active/Passive and bit 8 is Partner not found or not.
+	      
+	      		standbyMasterPassive(1)   		- Master in passive state
+	      		standbySlavePassive(3)   	    - Slave in passive state
+	      		standbyMasterActive(5)  	    - Master in active state
+	      		standbySlaveActive(7)     		- Slave in passive state
+	      		standbyMasterPassive-lost(17)   - Master in passive state but partner is lost
+	      		standbySlavePassive-lost(19)    - Slave in passive state but partner is lost
+	      		standbyMasterActive-lost(21)    - Master in active state but partner is lost
+	      		standbySlaveActive-lost(23)     - Slave in passive state but partner is lost
+	      		standbyWaitingForPartner(257)   - Waiting for partner, partner was not yet found
+                standbyDisabled(300)     	    - Standby connection is disabled"
+	    ::= { snX300X400Standby 4 }
+
+snX300X400StandbyStateChanges  OBJECT-TYPE
+	    SYNTAX  Counter
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Number of changes to Standby connection active state."
+	    ::= { snX300X400Standby 5 }
+
+snX300X400StandbyResetCounters  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+		  no-operation(1),
+		  reset(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Reset all counters of Standby protocol software."
+	    ::= { snX300X400Standby 6 }
+	    
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 SPECIFIC IGMP MIB
+-- --------------------------------------------------------------
+snX300X400IGMPSnoopEnabled  OBJECT-TYPE
+        SYNTAX  TruthValue
+        ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "Setting this object to true(1) enables IGMP Snooping.  Setting
+                it to false(2) disables IGMP Snooping.             
+                Note that IGMP Snooping can function with or without GVRP and/or
+                GMRP enabled."
+        ::= { snX300X400IGMP 1 }
+
+snX300X400IGMPSnoopAging  OBJECT-TYPE
+        SYNTAX  Integer32 (30..3600)
+        ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "The timeout period in seconds for aging out Multicast Groups
+                dynamically learned with IGMP Snooping.  Note that aging operates
+                on a per interface per VLAN per multicast group basis.
+                This interval is also used to age out ports that have received
+                IGMP Router Query PDUs on a per VLAN basis."
+        ::= { snX300X400IGMP 3 }
+
+snX300X400IGMPQueryEnabled  OBJECT-TYPE
+        SYNTAX  TruthValue
+        ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "Setting this object to true(1) enables IGMP query sending. Setting
+                it to false(2) disables IGMP query sending.             
+                Note that IGMP query sending only works if also IGMP Snooping is enabled."
+        ::= { snX300X400IGMP 5 }
+        
+snX300X400IGMPSnoopTable  OBJECT-TYPE
+        SYNTAX  SEQUENCE OF SnX300X400IGMPSnoopEntry
+        ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "This table, which provides IGMP Snooping information, augments
+                the 'dot1qStaticMulticastTable' in the Q-MIB (RFC2674)."
+        ::= { snX300X400IGMP 90 }
+
+snX300X400IGMPSnoopEntry  OBJECT-TYPE
+        SYNTAX  SnX300X400IGMPSnoopEntry
+        ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "Displays by VLAN, Multicast Group, and Multicast receive port
+                (which is always 0) the set of ports enabled to forward
+                Multicast Group traffic as determined by the IGMP Snooping task."
+        AUGMENTS { dot1qStaticMulticastEntry }
+        ::= { snX300X400IGMPSnoopTable 1 }
+
+SnX300X400IGMPSnoopEntry ::= SEQUENCE {
+        snX300X400IGMPSnoopEgressPorts   PortList
+    	}
+
+snX300X400IGMPSnoopEgressPorts  OBJECT-TYPE
+        SYNTAX  PortList
+        ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "This read-only object displays the set of ports enabled to
+                forward specific Multicast Group traffic as determined by the
+                IGMP Snooping task.
+            
+                It should be noted that the IGMP Snooping task generates a pseudo-
+                static (i.e., not saved) port list similar to the RFC2674
+                Q-MIB 'dot1qStaticMulticastStaticEgressPorts' object. Consequently,
+                a port will not be a member of 'snX300X400IGMPSnoopEgressPorts' if
+                it is a member of 'dot1qStaticMulticastForbiddenEgressPorts'."
+        ::= { snX300X400IGMPSnoopEntry 1 }
+
+snX300X400IGMPSnoopQueryTable  OBJECT-TYPE
+        SYNTAX  SEQUENCE OF SnX300X400IGMPSnoopQueryEntry
+        ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "A table displaying the IGMP Router Query PDU ports."
+        ::= { snX300X400IGMP 91 }
+
+snX300X400IGMPSnoopQueryEntry  OBJECT-TYPE
+        SYNTAX  SnX300X400IGMPSnoopQueryEntry
+        ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "A table displaying the IGMP Router Query PDU ports.  These are
+                maintained on a per VLAN basis."
+        INDEX { dot1qVlanIndex }
+        ::= { snX300X400IGMPSnoopQueryTable 1 }
+
+SnX300X400IGMPSnoopQueryEntry ::= SEQUENCE {
+        snX300X400IGMPSnoopQueryPorts   PortList
+    	}
+
+snX300X400IGMPSnoopQueryPorts  OBJECT-TYPE
+        SYNTAX  PortList
+        ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "This read-only object displays the set of ports that have received
+                IGMP Router Query PDUs for this VLAN as determined by the IGMP
+                Snooping task."
+        ::= { snX300X400IGMPSnoopQueryEntry 1 }
+        
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 SPECIFIC Layer 3 MIB
+-- --------------------------------------------------------------
+snX300X400L3IpSubnet           OBJECT IDENTIFIER ::= { snX300X400L3 2 }
+snX300X400L3IpStatic           OBJECT IDENTIFIER ::= { snX300X400L3 3 }
+snX300X400L3IpDynamic          OBJECT IDENTIFIER ::= { snX300X400L3 4 }
+snX300X400L3IpRoute            OBJECT IDENTIFIER ::= { snX300X400L3 5 }
+snX300X400L3IpRip              OBJECT IDENTIFIER ::= { snX300X400L3 10 } 
+snX300X400L3IpOspf             OBJECT IDENTIFIER ::= { snX300X400L3 11 }
+snX300X400L3IpVrrp             OBJECT IDENTIFIER ::= { snX300X400L3 13 }
+             
+-- --------------------------------------------------------------
+-- Layer 3 Subnet Sub-Group
+-- --------------------------------------------------------------
+snX300X400L3IpSubnetMaxRows  OBJECT-TYPE
+        SYNTAX  Unsigned32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The maximum possible number of 'static' rows in the
+                'snX300X400L3IpSubnetTable'.  There can be an additionial dynamic
+                entry for each possible IP subnet interface."
+        ::= { snX300X400L3IpSubnet 1 }
+
+snX300X400L3IpSubnetCurrentRows  OBJECT-TYPE
+        SYNTAX  Unsigned32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The current number of rows in the 'snX300X400L3IpSubnetTable'.  When
+                there are dynamic entries in the table, this value can be larger
+                than 'snX300X400L3IpSubnetMaxRows'."
+        ::= { snX300X400L3IpSubnet 2 }
+
+snX300X400L3IpSubnetTable  OBJECT-TYPE
+        SYNTAX  SEQUENCE OF SnX300X400L3IpSubnetEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "A table of subnet parameters. 
+        		If this switch works as a pure L2 switch, there may be only one entry
+        		in this table. BOOTP/DHCP can be enabled in this case.
+        		This table entry may not be empty.
+        
+        		If this switch works as a L3 switch, there may be up to 'snX300X400L3IpSubnetMaxRows'
+        		entries in this table. BOOTP/DHCP is automaticaly disabled in this case. 
+        		The first entry may not be deleted. If the manager tries to delete that
+        		entry GEN_ERROR will be returned."
+        ::= { snX300X400L3IpSubnet 3 }
+
+snX300X400L3IpSubnetEntry  OBJECT-TYPE
+        SYNTAX  SnX300X400L3IpSubnetEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "A list of static and dynamic subnet parameters."
+        INDEX { snX300X400L3IpSubnetIfIndex, snX300X400L3IpSubnetAgentIpAddr }
+        ::= { snX300X400L3IpSubnetTable 1 }
+
+SnX300X400L3IpSubnetEntry ::= SEQUENCE {
+        snX300X400L3IpSubnetIfIndex        Integer32,
+        snX300X400L3IpSubnetAgentIpAddr    IpAddress,
+        snX300X400L3IpSubnetMask           IpAddress,
+        snX300X400L3IpSubnetVidIface       Integer32,
+        snX300X400L3IpSubnetName           DisplayString,
+        snX300X400L3IpSubnetRowStatus      RowStatus,
+        snX300X400L3IpSubnetDynamic        TruthValue
+    	}
+
+snX300X400L3IpSubnetIfIndex  OBJECT-TYPE
+        SYNTAX  Integer32
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "The ifIndex of the IP subnet interface (swX) associated with this subnet."
+        ::= { snX300X400L3IpSubnetEntry 1 }
+
+snX300X400L3IpSubnetAgentIpAddr  OBJECT-TYPE
+        SYNTAX  IpAddress
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "The network management station uses this IP Address to talk
+                with the management agent on this subnet.  This IP address logically
+                AND'ed with 'snX300X400L3IpSubnetMask' yields the actual subnet
+                value for this subnet.  A value '0.0.0.0' is an illegal value
+                for this object."
+        ::= { snX300X400L3IpSubnetEntry 2 }
+
+snX300X400L3IpSubnetMask  OBJECT-TYPE
+        SYNTAX  IpAddress
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION "The subnet mask for this subnet.  It contains 1's in the
+                bit positions for the net and subnet IDs and 0's in the
+                bit positions for the host ID.  The 1's must be contiguous,
+                starting with the left most bit.
+             
+                Before this entry is allowed to be set to active(1), this object
+                cannot contain the value of '0.0.0.0' (an illegal value for this
+                object)."
+        ::= { snX300X400L3IpSubnetEntry 3 }
+
+snX300X400L3IpSubnetVidIface  OBJECT-TYPE
+        SYNTAX  Integer32 (0..4094)
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION "this object contains the actual
+                VLAN ID (VID) from 1 to 4094 or 0 if the VID is unassigned.
+                             
+                Changing this object for this row causes all rows with the same
+                'snX300X400L3IpSubnetIfIndex' as this row to be changed to this new
+                'snX300X400L3IpSubnetVidIface' value as well as automatically updating
+                the 'snX300X400L3SwEndMappingVidIface' in the 'snX300X400L3SwEndMappingTable'
+                for the entry using the same ifIndex value.
+             
+                Before this entry is allowed to be set to active(1), this object
+                must contain a valid value from 1 to 4094."
+        ::= { snX300X400L3IpSubnetEntry 4 }
+
+snX300X400L3IpSubnetName  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..16))
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION "An optional user reference name for this subnet."
+        ::= { snX300X400L3IpSubnetEntry 5 }
+
+snX300X400L3IpSubnetRowStatus  OBJECT-TYPE
+        SYNTAX  RowStatus
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION "This object indicates the status of this entry.  A row in this
+                table must be created using the createAndWait(5) action state
+                (createAndGo(4) is not supported).  This object can only be
+                set to active(1) after all objects for this row are valid
+                ('snX300X400L3IpSubnetAgentIpAddr' and 'snX300X400L3IpSubnetMask' cannot
+                contain '0.0.0.0' and 'snX300X400L3IpSubnetVidIface' must contain a
+                value from 1 to 4094).  The 'snX300X400L3IpSubnetName' is optional.
+             
+                Except for 'snX300X400L3IpSubnetVidIface' and 'snX300X400L3IpSubnetName',
+                objects in this table row can be changed only when this object
+                is notReady(3) or notInService(2). An attempt to edit objects
+                in this row when the status is active(1) results in an SNMPv1
+                'badValue' error or SNMPv2/v3 'inconsistentValue' error.
+             
+                Setting this object to notInService(2) is not supported.
+
+                Dynamic BOOTP/DHCP entries in this table (that is, entries that
+                have 'snX300X400L3IpSubnetDynamic' equal to true(1)) cannot be deleted.
+                An attempt to delete a dynamic entry results in a SNMPv1
+                'badValue' error or SNMPv2/v3 'inconsistentValue' error."
+        ::= { snX300X400L3IpSubnetEntry 6 }
+
+snX300X400L3IpSubnetDynamic  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "This object is true(1) if this entry was dynamically created by
+                BOOTP or DHCP and false(2) if it was statically created.
+             
+                Table entries with this object set true(1) are not saved,
+                while those set to false(2) are saved.  Entries with this
+                object set to true(1) cannot be deleted from this table."
+        ::= { snX300X400L3IpSubnetEntry 7 }
+
+-- --------------------------------------------------------------
+-- Layer 3 Static Sub-Group
+-- --------------------------------------------------------------
+snX300X400L3IpStaticMaxHwHosts  OBJECT-TYPE
+        SYNTAX  Unsigned32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The maximum number, if any, of hosts that the hardware
+                can support in its routing table.
+             
+                Note that if the hardware supports both hosts and subnets
+                in the same table, this number represents both and 
+                'snX300X400L3IpStaticMaxHwSubnets' is zero (0)."
+        ::= { snX300X400L3IpStatic 1 }
+
+snX300X400L3IpStaticNumStaticHwHosts  OBJECT-TYPE
+        SYNTAX  Unsigned32
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "The number of 'snX300X400L3IpStaticMaxHwHosts' hosts that the user
+                would like to reserve for static routes.  A SNMPv1 badValue
+                or SNMPv2 wrongValue is returned if the user attempts to use
+                a value less than zero or greater than 'snX300X400L3IpStaticMaxHwHosts'.
+             
+                WARNING: This value is only used during system initialization
+                (i.e., after a reset)."
+        ::= { snX300X400L3IpStatic 2 }
+
+snX300X400L3IpStaticMaxHwSubnets  OBJECT-TYPE
+        SYNTAX  Unsigned32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The maximum number, if any, of subnets that the hardware
+                can support in its routing table.
+
+                Note that if the hardware supports both hosts and subnets
+                in the same table, this value is zero (0)."
+        ::= { snX300X400L3IpStatic 3 }
+
+snX300X400L3IpStaticNumStaticHwSubnets  OBJECT-TYPE
+        SYNTAX  Unsigned32
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "The number of 'snX300X400L3IpStaticMaxHwSubnets' subnets that the user
+                would like to reserve for static routes.  An A SNMPv1 badValue
+                or SNMPv2 wrongValue is returned if the user attempts to use a
+                value less than zero or greater than 'snX300X400L3IpStaticMaxHwSubnets'.
+             
+                WARNING: This value is only used during system initialization
+                (i.e., after a reset)."
+        ::= { snX300X400L3IpStatic 4 }
+
+snX300X400L3IpStaticRouteMaxRows  OBJECT-TYPE
+        SYNTAX  Unsigned32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The maximum possible number of rows in the 
+                'snX300X400L3IpStaticRouteTable'."
+        ::= { snX300X400L3IpStatic 5 }
+
+snX300X400L3IpStaticRouteCurrentRows  OBJECT-TYPE
+        SYNTAX  Unsigned32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The current number of rows in the 'snX300X400L3IpStaticRouteTable'."
+        ::= { snX300X400L3IpStatic 6 }
+
+snX300X400L3IpStaticRouteTable  OBJECT-TYPE
+        SYNTAX  SEQUENCE OF SnX300X400L3IpStaticRouteEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "A table of static routes."
+        ::= { snX300X400L3IpStatic 7 }
+
+snX300X400L3IpStaticRouteEntry  OBJECT-TYPE
+        SYNTAX  SnX300X400L3IpStaticRouteEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "A list of static route parameters."
+        INDEX { snX300X400L3IpStaticDestIpAddr }
+        ::= { snX300X400L3IpStaticRouteTable 1 }
+
+SnX300X400L3IpStaticRouteEntry ::= SEQUENCE {
+        snX300X400L3IpStaticDestIpAddr     IpAddress,
+        snX300X400L3IpStaticMask           IpAddress,
+        snX300X400L3IpStaticNextHop        IpAddress,
+        snX300X400L3IpStaticName           DisplayString,
+        snX300X400L3IpStaticUseHw          TruthValue,
+        snX300X400L3IpStaticInHw           TruthValue,
+        snX300X400L3IpStaticGateway        TruthValue,
+        snX300X400L3IpStaticRowStatus      RowStatus
+    	}
+
+snX300X400L3IpStaticDestIpAddr  OBJECT-TYPE
+        SYNTAX  IpAddress
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "The static route host or subnet IP destination address.
+                This table may include a single default route (0.0.0.0)."
+        ::= { snX300X400L3IpStaticRouteEntry 1 }
+
+snX300X400L3IpStaticMask  OBJECT-TYPE
+        SYNTAX  IpAddress
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION "The mask for this IP destination.  It contains 1's in the
+                bit positions for the net and subnet IDs and 0's in the
+                bit positions for host ID.  The 1's must be contiguous,
+                starting with the left most bit.
+             
+                Note that a host route uses a '255.255.255.255' mask and the
+                default route uses a '0.0.0.0' mask."
+        ::= { snX300X400L3IpStaticRouteEntry 2 }
+
+snX300X400L3IpStaticNextHop  OBJECT-TYPE
+        SYNTAX  IpAddress
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION "The IP address of the next hop of this route.
+                (In the case of a route bound to an interface
+                which is realized via a broadcast media, the value
+                of this field is the agent's IP address on that
+                interface.)"
+        ::= { snX300X400L3IpStaticRouteEntry 3 }
+
+snX300X400L3IpStaticName  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..16))
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION "A user reference name for this Static Route."
+        ::= { snX300X400L3IpStaticRouteEntry 4 }
+
+snX300X400L3IpStaticUseHw  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION "By setting this object to true(1), the user indicates the
+                desire to use hardware routing for this entry.  To disable
+                hardware routing for this entry, set this object to false(2).
+                If the underlying switch fabric does not support hardware
+                routing, this object is ignored.
+
+                If 'snX300X400L3IpStaticDestIpAddr' for this entry contains '0.0.0.0'
+                (the default route), then this object normally (that is, when
+                'snX300X400L3IpStaticAllowDefaultRouteInHw' is false(2)) must be
+                'false(1)'.  In this case, attempting to set this object to
+                true(1) results in a SNMPv1 'badValue' error or SNMPv2/v3
+                'inconsistentValue' error.
+             
+                If 'snX300X400L3IpStaticAllowDefaultRouteInHw' is true(1), then this
+                object may be set to true(1).
+
+                There is usually limited space in the hardware routing table.
+                Consequently, if the user enables hardware routing on 'too'
+                many entries, the agent assigns routes on a first come, first
+                serve basis (i.e., the user may not get the expected results)."
+        ::= { snX300X400L3IpStaticRouteEntry 5 }
+
+snX300X400L3IpStaticInHw  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "If this object is true(1), this static route is actually in
+                the hardware Route Table.  Otherwise it is false(2)."
+        ::= { snX300X400L3IpStaticRouteEntry 6 }
+
+snX300X400L3IpStaticGateway  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION "By setting this object to true(1), the user indicates that this
+                subnet route is a gateway route (that is, connected to external
+                router).  By setting it to false(2), the user indicates that this
+                is a direct route.  If 'snX300X400L3IpStaticMask' is '255.255.255.255'
+                (a host route) for this entry, this object must be set to
+                false(2).  If 'snX300X400L3IpStaticMask' is '0.0.0.0' (default route)
+                for this entry, this object must be set to true(1).  Attempting
+                to set this object to a value that is prohibited results in an
+                SNMPv1 'badValue' error or SNMPv2/v3 'inconsistentValue' error."
+        ::= { snX300X400L3IpStaticRouteEntry 7 }
+
+snX300X400L3IpStaticRowStatus  OBJECT-TYPE
+        SYNTAX  RowStatus
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION "This object indicates the status of this entry.  A row in this
+                table must be created using the createAndWait(5) action state
+                (createAndGo(4) is not supported).  This object can only be
+                set to active(1) after all objects for this row are valid.
+                The 'snX300X400L3IpStaticName' object is optional.
+
+                Except for 'snX300X400L3IpStaticName', objects in this table row can be
+                changed only when this object is notReady(3) or notInService(2).
+                An attempt to edit objects in this row when the status is
+                active(1) results in an SNMPv1 'badValue' error or SNMPv2/v3
+                'inconsistentValue' error.
+             
+                Setting this object to notInService(2) is not supported."
+        ::= { snX300X400L3IpStaticRouteEntry 8 }
+
+snX300X400L3IpStaticAllowDefaultRouteInHw  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "When this object is true(1), the agent allows the default route
+                in the 'snX300X400L3IpStaticRouteTable' to be placed into the hardware
+                route table (that is, can set snX300X400L3IpStaticUseHw to true(1)).
+                When it is false(2), the agent prohibits the default route from
+                being placed into the hardware route table.
+             
+                Setting this value from true(1) to false(2) when the default route
+                is in the hardware route table (or 'snX300X400L3IpStaticUseHw' for the
+                default route entry in the 'snX300X400L3IpStaticRouteTable' is true(1)),
+                results in 'snX300X400L3IpStaticUseHw' for the default route being set to
+                false(2) and, if the default route is in the hardware route table,
+                its removal from the hardware route table.
+
+                Setting this object to true(1) when adding/updating static routes
+                and/or dynamic routes (such as those from RIP and OSPFv2) is not 
+                recommended.  When the default route is placed into the hardware
+                route table, traffic for these new routes goes to the hardware
+                default route and is never sent to the agent.  In order for the
+                agent to place the new or modified routes into hardware route
+                table, requires that the agent see the first packet for each new
+                route.  Consequently, the desired hardware route table updates
+                will not occur."
+        ::= { snX300X400L3IpStatic 8 }
+
+-- --------------------------------------------------------------
+-- Layer 3 Dynamic Sub-Group
+-- --------------------------------------------------------------
+snX300X400L3IpDynamicRouteCurrentRows  OBJECT-TYPE
+        SYNTAX  Unsigned32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The current number of rows in the 'snX300X400L3IpDynamicRouteTable'."
+        ::= { snX300X400L3IpDynamic 1 }
+
+snX300X400L3IpDynamicRouteTable  OBJECT-TYPE
+        SYNTAX  SEQUENCE OF SnX300X400L3IpDynamicRouteEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "A table of dynamic routes generated by RIP, OSPF, other routing
+                protocols, and by the TCP/IP stack when creating host routes
+                for existing subnets."
+        ::= { snX300X400L3IpDynamic 2 }
+
+snX300X400L3IpDynamicRouteEntry  OBJECT-TYPE
+        SYNTAX  SnX300X400L3IpDynamicRouteEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "A list of dynamic route parameters."
+        INDEX { snX300X400L3IpDynamicDestIpAddr }
+        ::= { snX300X400L3IpDynamicRouteTable 1 }
+
+SnX300X400L3IpDynamicRouteEntry ::= SEQUENCE {
+        snX300X400L3IpDynamicDestIpAddr    IpAddress,
+        snX300X400L3IpDynamicMask          IpAddress,
+        snX300X400L3IpDynamicNextHop       IpAddress,
+        snX300X400L3IpDynamicName          DisplayString,
+        snX300X400L3IpDynamicUseHw         TruthValue,
+        snX300X400L3IpDynamicInHw          TruthValue,
+        snX300X400L3IpDynamicGateway       TruthValue,
+        snX300X400L3IpDynamicRowStatus     RowStatus
+    	}
+
+snX300X400L3IpDynamicDestIpAddr  OBJECT-TYPE
+        SYNTAX IpAddress
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "The dynamic route host or subnet IP destination address.
+                Note that all IP destination addresses in this table are
+                non-zero."
+        ::= { snX300X400L3IpDynamicRouteEntry 1 }
+
+snX300X400L3IpDynamicMask  OBJECT-TYPE
+        SYNTAX  IpAddress
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The mask for this IP destination.  It contains 1's in the
+                bit positions for the net and subnet IDs and 0's in the
+                bit positions for host ID.  The 1's are contiguous,
+                starting with the left most bit.
+             
+                Note that a host route uses a 255.255.255.255 mask."
+        ::= { snX300X400L3IpDynamicRouteEntry 2 }
+
+snX300X400L3IpDynamicNextHop  OBJECT-TYPE
+        SYNTAX  IpAddress
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The IP address of the next hop of this route.
+               (In the case of a route bound to an interface
+               which is realized via a broadcast media, the value
+               of this field is the agent's IP address on that
+               interface.)"
+        ::= { snX300X400L3IpDynamicRouteEntry 3 }
+
+snX300X400L3IpDynamicName  OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..16))
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "An agent generated reference name for this Dynamic Route."
+        ::= { snX300X400L3IpDynamicRouteEntry 4 }
+
+snX300X400L3IpDynamicUseHw  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "By setting this object to true(1), the user indicates the
+                desire to use hardware routing for this entry.  To disable
+                hardware routing for this entry, set this object to false(2).
+                If the underlying switch fabric does not support hardware
+                routing, this object is ignored.
+
+                There is usually limited space in the hardware routing table.
+                Consequently, if the user enables hardware routing on 'too'
+                many entries, the agent assigns routes on a first come, first
+                serve basis (i.e., the user may not get the expected results)."
+        ::= { snX300X400L3IpDynamicRouteEntry 5 }
+
+snX300X400L3IpDynamicInHw  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "If this object is true(1), this dynamic route is actually in
+                the hardware Route Table.  Otherwise it is false(2)."
+        ::= { snX300X400L3IpDynamicRouteEntry 6 }
+
+snX300X400L3IpDynamicGateway  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "If this object is true(1), this subnet route is a gateway route
+                (that is, connected to external router).  If it is false(2), it
+                is a direct route."
+        ::= { snX300X400L3IpDynamicRouteEntry 7 }
+
+snX300X400L3IpDynamicRowStatus  OBJECT-TYPE
+        SYNTAX  RowStatus
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "This object indicates the status of this entry.  It cannot be
+                used to delete this entry."
+        ::= { snX300X400L3IpDynamicRouteEntry 8 }
+
+-- --------------------------------------------------------------
+-- Layer 3 Route Sub-Group
+-- --------------------------------------------------------------
+snX300X400L3IpRouteTableCurrentSwEntries  OBJECT-TYPE
+        SYNTAX  Unsigned32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The current number of static and dynamic snX300X400L3 entries in
+                the software Routing Table."
+        ::= { snX300X400L3IpRoute 1 }
+
+snX300X400L3IpRouteCurrentHwHosts  OBJECT-TYPE
+        SYNTAX  Unsigned32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The number of hardware host routing table entries currently
+                in use.  If the hardware does not have routing table support,
+                this value is zero (0).
+             
+                If the hardware supports both hosts and subnets
+                in the same table, this number represents both and
+                'snX300X400L3IpRouteCurrentHwSubnets' is zero (0)."
+        ::= { snX300X400L3IpRoute 2 }
+
+snX300X400L3IpRouteCurrentHwSubnets  OBJECT-TYPE
+        SYNTAX  Unsigned32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The number of hardware subnet routing table entries currently
+                in use.  If the hardware does not have routing table support,
+                this value is zero (0).
+
+                Note that if the hardware supports both hosts and subnets
+                in the same table, this value is zero (0)."
+        ::= { snX300X400L3IpRoute 3 }
+
+snX300X400L3IpRouteTable  OBJECT-TYPE
+        SYNTAX  SEQUENCE OF SnX300X400L3IpRouteEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "Provides Routing Table access.  This table can be used to
+                modify or add Routing Table entries.  Changes made with this
+                table are not saved.  To save
+                static routes, use the snX300X400L3IpStaticRouteTable."
+        ::= { snX300X400L3IpRoute 4 }
+
+snX300X400L3IpRouteEntry  OBJECT-TYPE
+        SYNTAX  SnX300X400L3IpRouteEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "Provides enough routing information to support the UNIX style
+                'netstat -nr' command and to support maintenance of the
+                Routing Table."
+        INDEX   { snX300X400L3IpRouteDest }
+        ::= { snX300X400L3IpRouteTable 1 }
+
+SnX300X400L3IpRouteEntry ::= SEQUENCE {
+        snX300X400L3IpRouteDest        IpAddress,
+        snX300X400L3IpRouteMask        IpAddress,
+        snX300X400L3IpRouteNextHopIp   IpAddress,
+        snX300X400L3IpRouteNextHopMac  MacAddress,
+        snX300X400L3IpRouteIfIndex     Integer32,
+        snX300X400L3IpRouteType        INTEGER,
+        snX300X400L3IpRouteProto       INTEGER,
+        snX300X400L3IpRouteAge         Unsigned32,
+        snX300X400L3IpRouteMetric1     Integer32,
+        snX300X400L3IpRouteUsingHw     TruthValue,
+        snX300X400L3IpRouteIsStatic    TruthValue,
+        snX300X400L3IpRouteRowStatus   RowStatus
+        }
+
+snX300X400L3IpRouteDest  OBJECT-TYPE
+        SYNTAX  IpAddress
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION "The destination IP address of this route.  An
+                entry with a value of 0.0.0.0 is considered a
+                default route.  Multiple routes to a single
+                destination can appear in the table, but access to
+                such multiple entries is dependent on the table-
+                access mechanisms defined by the network
+                management protocol in use."
+        ::= { snX300X400L3IpRouteEntry 1 }
+
+snX300X400L3IpRouteMask  OBJECT-TYPE
+        SYNTAX  IpAddress
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "Indicate the mask to be logical-ANDed with the
+                destination address before being compared to the
+                value in the snX300X400L3IpRouteDest field.
+
+                If the value of the snX300X400L3IpRouteDest is 0.0.0.0 (a
+                default route), then the mask value is also
+                0.0.0.0.  It should be noted that all IP routing
+                subsystems implicitly use this mechanism."
+        ::= { snX300X400L3IpRouteEntry 2 }
+        
+snX300X400L3IpRouteNextHopIp  OBJECT-TYPE
+        SYNTAX  IpAddress
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The IP address of the next hop of this route.
+                (In the case of a route bound to an interface
+                which is realized via a broadcast media, the value
+                of this field is the agent's IP address on that
+                interface.)"
+        ::= { snX300X400L3IpRouteEntry 3 }
+
+snX300X400L3IpRouteNextHopMac  OBJECT-TYPE
+        SYNTAX  MacAddress
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The six byte MAC address of the next hop of this
+                route.  If the underlying hardware does not support this
+                object, an octet string of zero length is returned."
+        ::= { snX300X400L3IpRouteEntry 4 }
+
+snX300X400L3IpRouteIfIndex  OBJECT-TYPE
+        SYNTAX  Integer32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The index value which uniquely identifies the
+                local interface through which the next hop of this
+                route should be reached.  The interface identified
+                by a particular value of this index is the same
+                interface as identified by the same value of
+                ifIndex."
+        ::= { snX300X400L3IpRouteEntry 5 }
+
+snX300X400L3IpRouteType  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          other(1),       -- none of the following
+          invalid(2),     -- an invalidated route
+          direct(3),      -- route to directly connected (sub-)network
+          indirect(4)     -- route to a non-local 
+                          -- host/network/sub-network
+                }
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The type of route.  Note that the values
+                direct(3) and indirect(4) refer to the notion of
+                direct and indirect routing in the IP architecture.
+
+                Setting this object to the value invalid(2) has
+                the effect of invalidating the corresponding entry
+                in the snX300X400L3IpRouteTable object.  That is, it
+                effectively disassociates the destination
+                identified with said entry from the route
+                identified with said entry.  It is an
+                implementation-specific matter as to whether the
+                agent removes an invalidated entry from the table.
+                Accordingly, management stations must be prepared
+                to receive tabular information from agents that
+                corresponds to entries not currently in use.
+                Proper interpretation of such entries requires
+                examination of the relevant snX300X400L3IpRouteType object."
+        ::= { snX300X400L3IpRouteEntry 6 }
+
+snX300X400L3IpRouteProto  OBJECT-TYPE
+        SYNTAX  INTEGER {
+          other(1),       -- none of the following
+
+                          -- non-protocol information,
+          local(2),       -- e.g., manually configured entries
+
+          netmgmt(3),     -- set via a network management protocol
+
+          icmp(4),        -- obtained via ICMP, e.g., Redirect
+
+                            -- the remaining values are all gateway
+                            -- routing protocols
+          egp(5),
+          ggp(6),
+          hello(7),
+          rip(8),
+          is-is(9),
+          es-is(10),
+          ciscoIgrp(11),
+          bbnSpfIgp(12),
+          ospf(13),
+          bgp(14)
+                }
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The routing mechanism via which this route was
+                learned.  Inclusion of values for gateway routing
+                protocols is not intended to imply that hosts
+                should support those protocols."
+        ::= { snX300X400L3IpRouteEntry 7 }
+
+snX300X400L3IpRouteAge  OBJECT-TYPE
+        SYNTAX  Unsigned32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The number of seconds since this route was last
+                updated or otherwise determined to be correct.
+                Note that no semantics of `too old' can be implied
+                except through knowledge of the routing protocol
+                by which the route was learned."
+        ::= { snX300X400L3IpRouteEntry 8 }
+
+snX300X400L3IpRouteMetric1 OBJECT-TYPE
+        SYNTAX  Integer32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "The primary routing metric for this route.  The
+                semantics of this metric are determined by the
+                routing-protocol specified in the route's
+                snX300X400L3IpRouteProto value.  If this metric is not used,
+                its value should be set to -1."
+        ::= { snX300X400L3IpRouteEntry 9 }
+
+snX300X400L3IpRouteUsingHw OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "This object is true(1) if this route is contained in
+                the hardware routing table; otherwise, it is false(2)."
+        ::= { snX300X400L3IpRouteEntry 10 }
+
+snX300X400L3IpRouteIsStatic  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "This object is true(1) if this route is defined in the
+                'snX300X400L3IpStaticRouteTable'.  This object is false(2) if this
+                route was created dynamically (e.g., with RIP, OSPF) or was
+                manually created using this table ('snX300X400L3IpRouteTable') or 
+                the RFC1213 'ipRouteTable'."
+        ::= { snX300X400L3IpRouteEntry 11 }
+
+snX300X400L3IpRouteRowStatus  OBJECT-TYPE
+        SYNTAX  RowStatus
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "For this release, this object and table are implemented as
+                'read-only'.  The following comments will apply when this table
+                is actually implemented as 'read-create'.
+            
+                This object indicates the status of this entry.  A row in this
+                table must be created using the createAndWait(5) action state
+                (i.e., createAndGo(4) is not supported).  This object can only
+                be set to active(1) for the specified 'snX300X400L3IpRouteDest' index
+                value after the 'snX300X400L3IpRouteMask' and 'snX300X400L3IpRouteNextHop'
+                objects for this row are valid.  Setting 'snX300X400L3IpRouteType' is
+                optional.
+             
+                Note that the notInService(2) state is not supported.  Objects
+                in this table row can be changed when this object is notReady(3)
+                or active(1)."
+        ::= { snX300X400L3IpRouteEntry 15 }
+
+-- --------------------------------------------------------------
+-- Layer 3 Rip Sub-Group
+-- --------------------------------------------------------------
+snX300X400L3IpRipEnable  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "Setting this object to true(1) enables the RIP routing protocol
+                for the SCALANCE X-400.  Setting it to false(2) disables RIP."
+        ::= { snX300X400L3IpRip 1 }
+
+snX300X400L3IpRipBorderGatewayFilterEnable  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "Setting this object to true(1) enables RIP Border Gateway
+                Filtering operation for the SCALANCE X-400.  This requires RIPv2
+                to interoperate with RIPv1 at border gateways according to 
+                the rules listed in the REFERENCE for this object. Routes to
+                portions of a logical network (including host routes) are
+                limited to routers within the network. Updates sent outside
+                the network include only a single subnet entry representing
+                the entire network including all subnets and host-specific
+                routes. If supernets (routes with a netmask less specific than
+                the 'natural' network mask) are used, the entry will advertise
+                the largest class-based portion of the supernet reachable
+                through the connected interface.
+             
+                Setting this object to false(2) disables RIP Border Gateway
+                Filtering operation.  Thus, RIP ignores the restrictions
+                necessary for RIPv2 to interoperate properly with RIPv1 routers 
+                in the same network. All border gateway filtering is ignored and
+                all routes to subnets, supernets, and specific hosts are sent
+                over any available interface. Note that this operation is only
+                correct if no RIPv1 routers are present in the network."
+        REFERENCE "IETF RFC 1058: Section 3.2,
+                   IETF RFC 1723: Section 3.3"
+        ::= { snX300X400L3IpRip 2 }
+
+snX300X400L3IpRipRedistributeDefaultRoute  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "Setting this object to true(1) enables RIP to redistribute the
+                static default route to RIP peers.  Setting it to false(2)
+                disables redistribution."
+        ::= { snX300X400L3IpRip 3 }
+
+snX300X400L3IpRipRedistributeStaticRoutes  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "Setting this object to true(1) enables RIP to redistribute
+                statically configured gateway routes to RIP peers.  Setting
+                it to false(2) disables redistribution."
+        ::= { snX300X400L3IpRip 4 }
+    
+snX300X400L3IpRipRedistributeOspfRoutes  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "Setting this object to true(1) enables RIP to redistribute
+                dynamically learned OSPF routes to RIP peers.  Setting it
+                to false(2) disables redistribution."
+        ::= { snX300X400L3IpRip 5 }
+
+-- --------------------------------------------------------------
+-- Layer 3 Ospf Sub-Group
+-- --------------------------------------------------------------
+snX300X400L3IpOspfRFC1583Compatibility  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "Indicates metrics used to choose among multiple AS-
+                external-LSAs. When RFC1583Compatibility is set to
+                enabled, only cost will be used when choosing among
+                multiple AS-external-LSAs advertising the same
+                destination. When RFC1583Compatibility is set to
+                disabled, preference will be driven first by type of
+                path using cost only to break ties."
+        REFERENCE "OSPF Version 2, Section 16.4.1 External path preferences"
+        ::= {  snX300X400L3IpOspf 1 }
+
+snX300X400L3IpOspfRedistributeDefaultRoutes  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "The status of default routes redistribution capability
+                in the router. The value 'enabled' denotes that the default
+                routes redistribution capability is active and OSPF will
+                install and redistribute external LSAs with the default route
+                0.0.0.0 as the forwarding address; 'disabled' denotes that the
+                default route redistribution capability is inactive."
+        ::= {  snX300X400L3IpOspf 9 }
+
+snX300X400L3IpOspfRedistributeStaticRoutes  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "The status of static routes redistribution capability in
+                the router. The value 'enabled' denotes that the static
+                routes redistribution capability is active and OSPF will
+                redistribute statically configured gateway to its peers;
+                'disabled'  denotes that the static routes redistribution
+                capability is inactive."
+        ::= {  snX300X400L3IpOspf 10 }
+
+snX300X400L3IpOspfRedistributeRIPRoutes  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "The  status of RIP routes redistribution capability in the
+                router. The value 'enabled' denotes that the redistribution 
+                capability is active and OSPF will redistribute RIP routes 
+                to its peers; 'disabled'  denotes that the RIP routes 
+                redistribution capability is inactive."
+        ::= {  snX300X400L3IpOspf 11 }
+
+snX300X400L3IpOspfExtLsdbOverflowState  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "When the number of non-default AS-external-LSAs
+ 			    in a router's link-state database reaches
+ 			    ospfExtLsdbLimit, the router enters Overflow-
+ 			    State. The router never holds more than
+ 			    ospfExtLsdbLimit non-default AS-external-LSAs
+ 			    in its database. OspfExtLsdbLimit MUST be set
+ 			    identically in all routers attached to the OSPF
+ 			    backbone and/or any regular OSPF area. (i.e.,
+ 			    OSPF stub areas and NSSAs are excluded).."
+        ::= {  snX300X400L3IpOspf 13 }
+
+snX300X400L3IpOspfMemoryExhausted  OBJECT-TYPE
+        SYNTAX  TruthValue
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION "When OSPF runs out of memory it will shut down 
+            	immediately and set this variable as an indication to true(2)."
+        ::= {  snX300X400L3IpOspf 14 }
+
+-- --------------------------------------------------------------
+-- Layer 3 Vrrp Sub-Group
+-- --------------------------------------------------------------
+snX300X400L3IpVrrpResetCounters   OBJECT-TYPE
+        SYNTAX  INTEGER {
+          no-operation(1),
+	      reset-counters(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "Reset all VRRP Statistic counters."
+        ::= { snX300X400L3IpVrrp  1 } 
+        
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 SPECIFIC Observer MIB
+-- --------------------------------------------------------------
+snX300X400RmObserverMode  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      disabled(2),
+	      restart(3),
+	      protect(4),
+	      not-supported(5)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "RM Observer Mode."
+	    ::= { snX300X400Observer 1 }
+
+snX300X400RmObserverState  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      rmObserverPassive(1),
+	      rmObserverActive(2)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "RM Observer State."
+	    ::= { snX300X400Observer 2 }
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 SPECIFIC QoS MIB
+-- --------------------------------------------------------------
+
+-- --------------------------------------------------------------
+-- QoS CoS to Queues Mapping Sub-Group
+-- --------------------------------------------------------------
+snX300X400QoSCoSToQueuesMappingTable  OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX300X400QoSCoSToQueuesMappingEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "CoS to queue mapping table."
+	    ::= { snX300X400QoS 20 }
+
+snX300X400QoSCoSToQueuesMappingEntry  OBJECT-TYPE
+	    SYNTAX  SnX300X400QoSCoSToQueuesMappingEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "CoS to queue mapping table rows entries."
+	    INDEX   { snX300X400QoSCoSToQueuesMappingIndex }
+	    ::= { snX300X400QoSCoSToQueuesMappingTable 1 }
+
+SnX300X400QoSCoSToQueuesMappingEntry ::= SEQUENCE {
+	    snX300X400QoSCoSToQueuesMappingIndex     INTEGER,
+	    snX300X400QoSCoSToQueuesMappingQueue     INTEGER
+	    }
+
+snX300X400QoSCoSToQueuesMappingIndex  OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Index of queue mapping table. Specifies the CoS (Class of Service) 
+	    	 tag values, where one is the lowest and eight is the highest. Index is not zero based."
+	    ::= { snX300X400QoSCoSToQueuesMappingEntry 1 }
+
+snX300X400QoSCoSToQueuesMappingQueue  OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Indicates the traffic forwarding queue to which the CoS priority is mapped,
+	    		, where zero is the lowest queue priority."
+		::= { snX300X400QoSCoSToQueuesMappingEntry 2 } 
+		
+-- --------------------------------------------------------------
+-- QoS DSCP to Queues Mapping Sub-Group
+-- --------------------------------------------------------------
+snX300X400QoSDSCPToQueuesMappingTable  OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX300X400QoSDSCPToQueuesMappingEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "DSCP to queue mapping table."
+	    ::= { snX300X400QoS 21 }
+
+snX300X400QoSDSCPToQueuesMappingEntry  OBJECT-TYPE
+	    SYNTAX  SnX300X400QoSDSCPToQueuesMappingEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "DSCP to queue mapping table rows entries."
+	    INDEX   { snX300X400QoSDSCPToQueuesMappingIndex }
+	    ::= { snX300X400QoSDSCPToQueuesMappingTable 1 }
+
+SnX300X400QoSDSCPToQueuesMappingEntry ::= SEQUENCE {
+	    snX300X400QoSDSCPToQueuesMappingIndex     INTEGER,
+	    snX300X400QoSDSCPToQueuesMappingQueue     INTEGER
+	    }
+
+snX300X400QoSDSCPToQueuesMappingIndex  OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Indicates the values of the DSCP (DiffServ Code Point)
+	    		field within the incoming packet. Index is not zero based."
+	    ::= { snX300X400QoSDSCPToQueuesMappingEntry 1 }
+
+snX300X400QoSDSCPToQueuesMappingQueue  OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Indicates the queue to which packets with the specific DSCP value are assigned,
+	    		where zero is the lowest queue priority."
+		::= { snX300X400QoSDSCPToQueuesMappingEntry 2 }
+		
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX300X400 SPECIFIC VIRTUAL CABLE TESTER MIB
+-- --------------------------------------------------------------
+
+-- --------------------------------------------------------------
+-- VirtualCableTesterControlTable Sub-Group
+-- -------------------------------------------------------------- 
+snX300X400VirtualCableTesterControlTable  OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX300X400VirtualCableTesterControlEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION	"Table containing per-port objects for virtual cable test feature
+	    		uses Time Domain Reflectometry to determine the quality of cables,
+	    		connectors, and terminations.Test can not be performed on fiber based interfaces. 
+	    		Test causes a link down!"
+	    ::= { snX300X400VirtualCableTester 10 }
+
+snX300X400VirtualCableTesterControlEntry  OBJECT-TYPE
+	    SYNTAX  SnX300X400VirtualCableTesterControlEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Interface entry containing objects for a particular
+	            interface."
+	    INDEX   { snX300X400VirtualCableTesterControlPortIndex }
+	    ::= { snX300X400VirtualCableTesterControlTable 1 }
+
+SnX300X400VirtualCableTesterControlEntry ::= SEQUENCE {
+        snX300X400VirtualCableTesterControlPortIndex  	INTEGER,
+        snX300X400VirtualCableTesterControlTrigger    	INTEGER
+        }
+
+snX300X400VirtualCableTesterControlPortIndex  OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION	"Unique number for each interface. The number for each interface must remain
+	            constant at least from one re-initialization of the entity's
+	            network management system to the next re-initialization."
+	    ::= { snX300X400VirtualCableTesterControlEntry 1 }
+	    	    
+snX300X400VirtualCableTesterControlTrigger  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      no-operation(1),
+	      test-port(2),
+	      port-under-test(3)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Objekt to trigger the virtual cable test: 
+                no-operation(1) no operation,
+                test-port(2) start a virtual cable test on the selected port,
+                port-under-test(3) a virtual cable test is currently running."
+
+	    ::= { snX300X400VirtualCableTesterControlEntry 2 }
+	    
+-- --------------------------------------------------------------
+-- VirtualCableTesterResultTable Sub-Group
+-- --------------------------------------------------------------
+snX300X400VirtualCableTesterResultTable  OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX300X400VirtualCableTesterResultEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION	"Table containing per-port and per-pair result objects for virtual cable test feature
+	    		uses Time Domain Reflectometry to determine the quality of cables,
+	    		connectors, and terminations.Test can not be performed on fiber based interfaces. 
+	    		Test causes a link down!"
+	    ::= { snX300X400VirtualCableTester 11 }
+
+snX300X400VirtualCableTesterResultEntry  OBJECT-TYPE
+	    SYNTAX  SnX300X400VirtualCableTesterResultEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Interface entry containing objects for a particular
+	            interface."
+	    INDEX   { snX300X400VirtualCableTesterResultPortIndex,
+	    		  snX300X400VirtualCableTesterResultCablePairIndex }
+	    ::= { snX300X400VirtualCableTesterResultTable 1 }
+
+SnX300X400VirtualCableTesterResultEntry ::= SEQUENCE {
+        snX300X400VirtualCableTesterResultPortIndex  		INTEGER,
+        snX300X400VirtualCableTesterResultCablePairIndex	INTEGER,	
+        snX300X400VirtualCableTesterResultStatus   			INTEGER,
+        snX300X400VirtualCableTesterResultLength     		INTEGER,
+        snX300X400VirtualCableTesterResultDistance    		INTEGER
+        }
+
+snX300X400VirtualCableTesterResultPortIndex  OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION	"Unique number for each interface. The number for each interface must remain
+	            constant at least from one re-initialization of the entity's
+	            network management system to the next re-initialization."
+	    ::= { snX300X400VirtualCableTesterResultEntry 1 } 
+
+snX300X400VirtualCableTesterResultCablePairIndex  OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION	"Unique number for each cable pair on the interface."
+	    ::= { snX300X400VirtualCableTesterResultEntry 2 }	    
+
+snX300X400VirtualCableTesterResultStatus  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      cableNotTested(1),
+	      cableTestFail(2),
+	      cableTestNormal(3),
+	      cableTestImpedanceMismatch(4),
+	      cableTestOpen(5),
+	      cableTestShort(6)
+
+	      }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Current status of the virtual cable test: 
+                cableNotTested(1) test not performed,
+                cableTestFail(2) test not performed successfully,
+                cableTestNormal(3) test performed - passed,
+          	    cableTestImpedanceMismatch(4) test performed - impedance mismatch,
+                cableTestOpen(5) test performed - open in cable,
+                cableTestShort(6) test performed - short in cable."
+        ::= { snX300X400VirtualCableTesterResultEntry 3 }
+	    
+snX300X400VirtualCableTesterResultLength  OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      lengthLessThan50m(1),        
+	      length50m-80m(2),
+	      length80m-110m(3),
+	      length110m-140m(4),
+	      lengthMoreThan140m(5),
+	      lengthUnknown(6)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory    
+	    DESCRIPTION "Current measured cable length of the virtual cable test, which performed passed: 
+                lengthLessThan50m(1) tested length less than 50m,
+                length50m-80m(2) tested length between 50m and 80m,
+                length80m-110m(3) tested length between 80m and 110m,
+          	    length110m-140m(4) tested length between 110m and 140m,
+                lengthMoreThan140m(5) tested length more than 140m,
+                lengthUnknown(6) length unknown or not tested."
+	    ::= { snX300X400VirtualCableTesterResultEntry 4 }
+
+snX300X400VirtualCableTesterResultDistance  OBJECT-TYPE
+	    SYNTAX  INTEGER 
+	    ACCESS  read-only
+	    STATUS  mandatory    
+	    DESCRIPTION "Current measured cable length of the virtual cable test, which performed 
+	    		with a cableTestImpedanceMismatch, cableTestOpen or cableTestShort.
+	    		The distance is shown in meter."
+	    ::= { snX300X400VirtualCableTesterResultEntry 5 }
+		
+-- ----------------------------------------------------------------------
+-- LastObject in SN SCALANCEX300X400 PRIVATE MIB
+-- ----------------------------------------------------------------------
+snLastObject  OBJECT-TYPE
+        SYNTAX INTEGER {
+          last-object(1)
+        }
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "This object is defined as a dummy object. The object
+                is used to indicate that no other objects can appear
+                after it in this private MIB.
+                The only purpose of this object is for MIB browsers
+                that need a valid object at the end of a private MIB."
+        ::= { iScalanceX300X400Mib 999 }
+
+-- --------------------------------------------------------------    
+-- SNMPv1 Traps for use by Scalance X300X400
+-- --------------------------------------------------------------
+    snTrapX300X400RmActiveState  TRAP-TYPE
+        ENTERPRISE  iScalanceX300X400
+        DESCRIPTION
+            "Redundancy manager entered active state."
+    ::= 11
+
+    snTrapX300X400RmPassiveState  TRAP-TYPE
+        ENTERPRISE  iScalanceX300X400
+        DESCRIPTION
+            "Redundancy manager entered passive state."
+    ::= 12
+    
+    snTrapX300X400StandbyActiveState  TRAP-TYPE
+        ENTERPRISE  iScalanceX300X400
+        DESCRIPTION
+            "Standby manager entered active state."
+    ::= 21
+     
+	snTrapX300X400StandbyPassiveState  TRAP-TYPE
+        ENTERPRISE  iScalanceX300X400
+        DESCRIPTION
+            "Standby manager entered passive state."
+    ::= 22
+     
+	snTrapX300X400PowerLine1Down  TRAP-TYPE
+        ENTERPRISE  iScalanceX300X400
+        DESCRIPTION
+            "Power down on line L1."
+    ::= 31
+
+    snTrapX300X400PowerLine1Up  TRAP-TYPE
+        ENTERPRISE  iScalanceX300X400
+        DESCRIPTION
+            "Power up on line L1."
+    ::= 32
+    
+    snTrapX300X400PowerLine2Down  TRAP-TYPE
+        ENTERPRISE  iScalanceX300X400
+        DESCRIPTION
+            "Power down on line L2."
+    ::= 33
+
+    snTrapX300X400PowerLine2Up  TRAP-TYPE
+        ENTERPRISE  iScalanceX300X400
+        DESCRIPTION
+            "Power up on line L2."
+    ::= 34
+
+    snTrapX300X400ChangedFaultState  TRAP-TYPE
+        ENTERPRISE  iScalanceX300X400
+        DESCRIPTION
+            "Device changed fault state."
+    ::= 41
+
+    snTrapX300X400DigitalInput  TRAP-TYPE
+        ENTERPRISE  iScalanceX300X400
+        VARIABLES { snX300X400ReportDigitalInState }
+        DESCRIPTION
+            "Digital Input state changed."
+    ::= 51      
+
+END
+

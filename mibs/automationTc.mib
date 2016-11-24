@@ -1,0 +1,132 @@
+-- ----------------------------------------------------------------------
+-- automationTc.mib
+--
+-- SIEMENS AG 
+-- Industry Sector
+--
+-- general textual conventions
+--
+-- Copyright (c) 2005-2008 Siemens AG
+-- All rights reserved.
+-- ----------------------------------------------------------------------
+
+AUTOMATION-TC           DEFINITIONS ::= BEGIN
+
+IMPORTS
+  automationModules     FROM AUTOMATION-SMI
+  MODULE-IDENTITY       FROM SNMPv2-SMI
+  DisplayString,
+  TEXTUAL-CONVENTION    FROM SNMPv2-TC; 
+
+automationTcModule      MODULE-IDENTITY
+  LAST-UPDATED          "200811100000Z"
+  ORGANIZATION          "Siemens AG"
+  CONTACT-INFO          "
+                        Siemens AG
+                        Industry Sector
+                        I IA SC IC RD 5
+                        Ingo Landgraf
+
+                        Postal: Gleiwitzer Strasse 555
+                                Nuremberg-Moorenbrunn
+                                D-90475
+                        Tel:    +49 911 895 3765
+                        E-mail: ingo.landgraf@siemens.com
+                        "
+  DESCRIPTION           "Definition of general TEXTUAL CONVENTIONS 
+                         for Siemens Industry Sector."
+
+  REVISION              "200811100000Z"
+  DESCRIPTION           "Update the contact information."
+
+  REVISION              "200804290000Z"
+  DESCRIPTION           "textual convention for 
+                         AutomationLocationString and 
+                         AutomationFunctionString added according
+                         IEC61158-6-10."
+
+  REVISION              "200501120000Z"
+  DESCRIPTION           "Initial Version of the MIB module."
+  ::= { automationModules 1 }
+
+AutomationOrderNumber          ::= TEXTUAL-CONVENTION
+    STATUS                     current
+    DESCRIPTION                "The format of type identification / order 
+                                numbers of Siemens A&D products."
+    SYNTAX                     OCTET STRING (SIZE (16..32))     
+                               
+AutomationSerialNumber         ::= TEXTUAL-CONVENTION
+    STATUS                     current
+    DESCRIPTION                "The format of serial numbers of 
+                                Siemens A&D products."
+    SYNTAX                     OCTET STRING (SIZE (32))
+                 
+AutomationVersionNumber        ::= TEXTUAL-CONVENTION
+    STATUS                     current
+    DESCRIPTION                "The version format of Siemens A&D in a 
+                               simplified OSLO form :
+                               [RCSTBPVKD][0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}
+                               "
+    SYNTAX                     OCTET STRING (SIZE (32))
+
+AutomationMacAddress           ::= TEXTUAL-CONVENTION
+    STATUS                     current
+    DESCRIPTION                "
+                               A six octet string (48-bit), using the 
+                               hexadecimal representation, in canonical
+                               order specified by IEEE Std 802 
+                               (Overview and Architecture, 
+                                formerly IEEE Std 802.1a).
+
+                               Shorter MAC address values than 48 bits, if 
+                               used, are represented by setting their 
+                               unused upper octets to all 0's, i.e., 
+                               the 16-bit address AAFF shall be 
+                               represented as 00000000AAFF.
+                               "
+    SYNTAX                     OCTET STRING (SIZE (6)) 
+
+AutomationIpAddress            ::= TEXTUAL-CONVENTION
+    STATUS                     current
+    DESCRIPTION                "
+                               An octet string which represents either a 
+                               IPv4 address or a IPv6a ddress or 
+                               a DNS compliant name. 
+                               "
+    SYNTAX                     OCTET STRING
+
+AutomationStatus               ::= TEXTUAL-CONVENTION
+    STATUS                     current
+    DESCRIPTION                "A uniform representation of status values."
+    SYNTAX                     INTEGER { invalid(0), enable(1), disable(2) }
+
+AutomationTrigger              ::= TEXTUAL-CONVENTION
+    STATUS                     current
+    DESCRIPTION                "A uniform representation of trigger values"
+    SYNTAX                     INTEGER { trigger(1), notTriggered(2) }
+
+AutomationFunctionString       ::= TEXTUAL-CONVENTION
+    STATUS                     current
+    DESCRIPTION                "
+                               The format of function tags according 
+                               IEC 61158-6-10, chapter 6.2.4.83.13.
+                               The value shall be filled with blanks 
+                               if it is shorter than 32.
+                               Non-printable characters and 
+                               control sequences are not allowed.
+                               "
+    SYNTAX                     DisplayString (SIZE (32))
+
+AutomationLocationString       ::= TEXTUAL-CONVENTION
+    STATUS                     current
+    DESCRIPTION                "
+                               The format of function tags according 
+                               IEC 61158-6-10, chapter 6.2.4.83.14.
+                               The value shall be filled with blanks 
+                               if it is shorter than 22.
+                               Non-printable characters and 
+                               control sequences are not allowed.
+                               "
+    SYNTAX                     DisplayString (SIZE (22))
+
+END

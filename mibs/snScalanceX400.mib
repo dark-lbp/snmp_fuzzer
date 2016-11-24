@@ -1,0 +1,1584 @@
+-- ----------------------------------------------------------------------
+-- prvmibScalanceX400.mib
+-- SIMATIC NET Industrial Ethernet Scalance X400
+-- ScalanceX400 Private MIB
+-- Copyright (c) 2005-2009 Siemens AG
+-- ----------------------------------------------------------------------
+--
+-- MIB Module :   SN-SCALANCEX400-PRIV-MIB
+--
+-- Revision   :   V1.0.0.3 Modified for SNMP OPC Server
+-- Date       :	  2009/03/05 
+--
+-- ----------------------------------------------------------------------
+SN-SCALANCEX400-PRIV-MIB DEFINITIONS ::= BEGIN
+        
+	      IMPORTS
+          enterprises,IpAddress,internet,
+          TimeTicks,Counter FROM RFC1155-SMI
+	  
+	  	  DisplayString, ifIndex
+          FROM RFC1213-MIB
+
+          OBJECT-TYPE FROM RFC-1212; 
+               
+siemensAD        OBJECT IDENTIFIER ::= { enterprises 4196 }  
+adProductMibs    OBJECT IDENTIFIER ::= { siemensAD 1 }
+simaticNet       OBJECT IDENTIFIER ::= { adProductMibs 1 }
+iScalanceX       OBJECT IDENTIFIER ::= { simaticNet 5 }
+iScalanceX400	   OBJECT IDENTIFIER ::= { iScalanceX 4 }
+
+-- **********************************************************************
+--          SIMATIC NET SCALANCEX400 Private MIB
+-- **********************************************************************
+
+-- ----------------------------------------------------------------------
+-- SIMATIC NET SCALANCEX400 Object Identifier Definition
+-- ----------------------------------------------------------------------
+iScalanceX400Mib  	OBJECT IDENTIFIER ::= { iScalanceX400 100 }
+
+-- ----------------------------------------------------------------------
+-- Groups in SCALANCEX400-PRIVATE-MIB
+-- ----------------------------------------------------------------------
+-- ----------------------------------------------------------------------
+-- textual conventions
+-- ----------------------------------------------------------------------
+          MacAddress ::= OCTET STRING (SIZE (6))
+          -- a 6 octet address in the "canonical" order
+          -- defined by IEEE 802.1a, i.e., as if it were transmitted
+          -- least significant bit first, even though 802.5 (in
+          -- contrast to other n802.x protocols) requires MAC
+          -- addresses to be transmitted most significant bit first.
+          --
+          -- 16-bit addresses, if needed, are represented by setting
+          -- their upper 4 octets to all 0's, i.e., AAFF would be
+          -- represented as 00000000AAFF.
+
+-- ----------------------------------------------------------------------
+-- SIMATIC NET SCALANCEX400 Objects
+-- ----------------------------------------------------------------------
+snX400Common              OBJECT IDENTIFIER ::= { iScalanceX400Mib 1 }
+snX400ProductSpecific     OBJECT IDENTIFIER ::= { iScalanceX400Mib 2 }
+
+-- ----------------------------------------------------------------------
+-- SIMATIC NET SCALANCEX400 Common Objects
+-- ----------------------------------------------------------------------
+snX400Download              OBJECT IDENTIFIER ::= { snX400Common 5  }  
+snX400Gen                   OBJECT IDENTIFIER ::= { snX400Common 8  }
+snX400TcpIp                 OBJECT IDENTIFIER ::= { snX400Common 10 }
+snX400CPlug                 OBJECT IDENTIFIER ::= { snX400Common 11 }
+snX400Time                  OBJECT IDENTIFIER ::= { snX400Common 12  }
+
+-- ----------------------------------------------------------------------
+-- SIMATIC NET SCALANCEX400 Product Common Objects
+-- ----------------------------------------------------------------------
+
+
+-- ----------------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX400 COMMON DOWNLOAD MIB:
+-- ----------------------------------------------------------------------
+
+-- ----------------------------------------------------------------------
+-- Download Sub-Groups
+-- ----------------------------------------------------------------------
+-- snDownloadParams   OBJECT IDENTIFIER ::= {snDownload 1}
+
+-- ----------------------------------------------------------------------
+-- SIMATIC NET SCALANCEX400 Download Group
+-- This group contains all the download related parameters.
+-- ----------------------------------------------------------------------
+snX400DownloadParamsTftpServerHostName OBJECT-TYPE
+        SYNTAX  DisplayString  (SIZE(0..64))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "IP address of the TFTP server (x.y.z.w)."
+        DEFVAL  {"0.0.0.0"}
+        ::= { snX400Download 1 }
+
+snX400DownloadParamsTftpServerHostPort OBJECT-TYPE
+	    SYNTAX INTEGER 
+	    ACCESS read-write
+	    STATUS    mandatory
+	    DESCRIPTION "Port of the TFTP server host. Dafault value is 69."
+	    DEFVAL { 69 }
+	    ::= {  snX400Download 2 }
+      
+snX400DownloadParamsControl    OBJECT-TYPE
+        SYNTAX  INTEGER { 
+          no-operation(1),	
+          start-load(2),
+          cancel(4)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Setting this object to start-load(2) causes the 
+                system to start a firmware downloading process."
+        ::= { snX400Download 3 }
+
+
+snX400DownloadParamsStatus OBJECT-TYPE
+        SYNTAX  INTEGER {
+	      save-load-in-progress(2),
+          save-load-inactive(3)
+	    }
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "The status of the TFTP client."
+        ::= { snX400Download 4 }
+        
+snX400DownloadParamsError  OBJECT-TYPE
+        SYNTAX  DisplayString
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION  "The error status of the TFTP client."
+        ::= { snX400Download 5 }
+        
+snX400DownloadFirmwareFile       OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..32))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Full path name of file to be loaded from the TFTP
+                server host. Note that the file name must have the appropriate syntax
+                for the TFTP server host.
+                E.g., if the TFTP server host is a UNIX machine, the full file name
+                might be  /tftp/name.lad, or if the TFTP server host is a Windows
+                machine, the full file name might be  C:\tftp\name.lad."
+        DEFVAL  {"Not Defined Yet"}
+        ::= { snX400Download 6 }
+
+snX400DownloadEventLogTableFile       OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..32))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Full path name of file to be saved to the TFTP
+                server host. Note that the file name must have the appropriate syntax
+                for the TFTP server host.
+                E.g., if the TFTP server host is a UNIX machine, the full file name
+                might be  /tftp/name.txt, or if the TFTP server host is a Windows
+                machine, the full file name might be  C:\tftp\name.txt."
+        DEFVAL  {"Not Defined Yet"}
+        ::= { snX400Download 9 }
+
+snX400DownloadEventLogTableControl    OBJECT-TYPE
+        SYNTAX  INTEGER {
+          no-operation(1),
+          start-save(3),
+          cancel(4)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Setting this object to start-save(3) causes the
+                system to start a uploading process."
+        ::= { snX400Download 10 }
+
+snX400DownloadConfigFile       OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..32))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Full path name of file to be saved or loaded from the TFTP
+                server host. Note that the file name must have the appropriate syntax
+                for the TFTP server host.
+                E.g., if the TFTP server host is a UNIX machine, the full file name
+                might be  /tftp/name.txt, or if the TFTP server host is a Windows
+                machine, the full file name might be  C:\tftp\name.txt."
+        DEFVAL  {"Not Defined Yet"}
+        ::= { snX400Download 11 }
+
+snX400DownloadConfigControl    OBJECT-TYPE
+        SYNTAX  INTEGER {
+          no-operation(1),
+          start-load(2),
+	      start-save(3),
+	      cancel(4)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Setting this object to start-load(2) causes the
+                system to start a downloading process.
+                Setting this object to start-save(3) causes the
+                system to start a uploading process."
+        ::= { snX400Download 12 }
+
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX400 COMMON GEN MIB:
+-- --------------------------------------------------------------
+snX400UserDescription  OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..255))
+        ACCESS    read-write
+        STATUS    mandatory
+        DESCRIPTION "Extended description of the station including user specific
+                information"
+        DEFVAL  {"Not Defined Yet"}
+        ::= { snX400Gen 1 }
+
+snX400HwVersion OBJECT-TYPE
+        SYNTAX DisplayString (SIZE (0..20))
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "The hardware version of the system."
+        ::= { snX400Gen 2 }
+
+snX400BootStrapVersion OBJECT-TYPE
+        SYNTAX DisplayString (SIZE (0..20))
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "The firmware version of the bootstrap program installed
+                in the system in the format."
+        ::= { snX400Gen 3 }
+
+snX400SwVersion OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE(0..255))
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "The software version of the system."
+        ::= { snX400Gen 4 }
+
+snX400InfoSerialNr OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..20))
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "The serial number of this product."
+        ::= { snX400Gen 6 }
+
+snX400SwitchTrapsEnable OBJECT-TYPE
+        SYNTAX  INTEGER {
+          not-supported(10),
+          enabled(1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Determines whether this device will
+                transmit traps to SNMP management stations.
+                This if this object is set to disable, no traps
+                will be sent.  Setting this object to enabled
+                is a necessary, but not a sufficient condition for
+                transmission of traps."
+        DEFVAL { disabled }
+        ::= { snX400Gen 7 }
+	
+snX400TelnetEnable OBJECT-TYPE
+        SYNTAX  INTEGER {
+          not-supported(10),
+          enabled(1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Enable/Disable telnet daemon."
+        DEFVAL { enabled }
+        ::= { snX400Gen 9 }
+
+snX400ConsoleTimeOutEnable OBJECT-TYPE
+        SYNTAX  INTEGER {
+          enabled(1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION   "Enables or disables the time out for a Console session."
+        DEFVAL { disabled }
+        ::= { snX400Gen 10 }
+
+snX400ConsoleTimeOut OBJECT-TYPE
+        SYNTAX  INTEGER (60..600)
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Time out for the Console session."
+        DEFVAL { 300 }
+        ::= { snX400Gen 11 }
+
+snX400SNMPEnable OBJECT-TYPE
+        SYNTAX  INTEGER {
+          not-supported(10),
+          enabled(1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Determines whether this device may be
+                accessed by SNMP management stations"
+        DEFVAL { enabled }
+        ::= { snX400Gen 12 }
+
+snX400RmonMode OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2),
+	      not-supported(10)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enable/Disable RMon functionality (statistics, history, alarm, events)."
+	    DEFVAL { disabled }
+	    ::= { snX400Gen 13 }
+	            
+snX400ResetCounters OBJECT-TYPE
+        SYNTAX  INTEGER {
+          no-operation(1),
+	      reset-counters(2)
+        }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Reset all statistic counters."
+	    ::= { snX400Gen 14 }
+  
+snX400EmailSMTPIpAddress   OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "IP address or host name of SMTP server."
+        DEFVAL  { 0 }
+        ::= { snX400Gen 20 }
+
+snX400EmailSMTPPort    OBJECT-TYPE
+        SYNTAX  INTEGER (1..65535)
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Number of TCP port to which the SMTP server will listen."
+        DEFVAL  {25}
+        ::= { snX400Gen 21 }
+
+snX400EmailEnable OBJECT-TYPE
+        SYNTAX  INTEGER {
+          enabled(1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "E-mail functionality for sending a message when an event occurred."
+        DEFVAL { disabled }
+        ::= { snX400Gen 22 }
+
+snX400EmailAddress OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..255))
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "E-mail address to which messages will be sent."
+        DEFVAL  {"Not Defined Yet"}
+        ::= { snX400Gen 23 }
+        
+snX400FTPEnable OBJECT-TYPE
+        SYNTAX  INTEGER {
+          enabled(1),
+          disabled(2)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Enable/Disable FTP Daemon."
+        DEFVAL { enabled }
+        ::= { snX400Gen 25 }          
+        
+snX400SpanOnOff OBJECT-TYPE
+        SYNTAX INTEGER {
+          enable(1),
+          disable(2)
+        }
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "Enable/Disable Spanning Tree for the bridge.
+                When 'disable(2)', all ports of the device are placed in the
+                forwarding mode, regardless of current Spanning Tree state.
+                When 'enable(1)', the normal STP state transitions take place."
+        DEFVAL { disable }
+        ::= { snX400Gen 30 }
+
+snX400SysReset OBJECT-TYPE
+        SYNTAX INTEGER {
+          noop(1),
+          restart(2),
+          save-and-restart(3),
+          set-to-memory-defaults-and-restart(4),
+          set-to-factory-defaults-and-restart(5)
+        }
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "Restart control of the Switch. noop(1) no operration.
+                restart(2) restarts the switch. save-and-restart(3)save the configuration 
+                and restart the switch. set-to-memory-defaults-and-restart(3)
+                set the the switch to the memory defaults and restart the switch.
+                set-to-factory-defaults-and-restart(5) the configuration of the switch is set to the factory
+                defaults and restart the switch."
+        ::= { snX400Gen 31 }
+        
+snX400ResetPowerUpCount OBJECT-TYPE
+		SYNTAX INTEGER
+		ACCESS read-only
+		STATUS  mandatory
+		DESCRIPTION "The number of times the sytem was powered up."
+		::= { snX400Gen 32 }                   
+
+snX400SaveConfiguration OBJECT-TYPE
+        SYNTAX INTEGER {
+          no-operation(1),	
+          save(2),
+          save-in-progress(3)
+        }
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "When SET to 'save(2)', all nonvolatile configuration
+ 	            parameters are saved to flash. Gets on this object returns
+ 	            'save-in-progress(3)' until the save operation completes, otherwise
+ 	            'no-operation(1)' is returned."
+        ::= { snX400Gen 33 }        
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX400 COMMON TCP/IP Address MIB
+-- --------------------------------------------------------------
+snX400IpVlanId OBJECT-TYPE
+        SYNTAX INTEGER (0..4094)
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Inband ports VLAN ID (VID) from 1 to 4094 or 0 if 
+                the VID is unassigned for the agent."
+        DEFVAL  { 0 }
+        ::= { snX400TcpIp 1 }
+        
+snX400IpAddress OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "IP address of the agent."
+        DEFVAL  { 0 }
+        ::= { snX400TcpIp 2 }
+
+snX400IpSubnetMask OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "IP subnet mask of the agent."
+        DEFVAL  { 0 }
+        ::= { snX400TcpIp 3 }
+
+snX400IpDefaultGateway OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "IP address of the default gateway."
+        DEFVAL  { 0 }
+        ::= { snX400TcpIp 4 }
+
+snX400BootP OBJECT-TYPE
+        SYNTAX INTEGER {
+	      enabled (1),
+          disabled(2)
+        }
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "The value enabled(1) will automatically run BOOTP
+                following SCALANCEX400 reset.
+                The value disabled(2) will inhibit BOOTP."
+        DEFVAL { disabled }
+        ::= { snX400TcpIp 5 }
+
+snX400Dhcp OBJECT-TYPE
+        SYNTAX INTEGER {
+          enabled-via-mac-address (1),
+	      disabled(2),
+          enabled-via-client-id (3),
+	      enabled-via-sysname (4)
+        }
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "The value enabled-via-mac-address(3) runs DHCP, enabled-via-client-id(4) runs DHCP
+		with option ClientId, enabled-via-sysname(5) runs DHCP with the sysname as ClientId.
+		The value disabled(2) will inhibit DHCP."
+        DEFVAL { enabled-via-mac-address }
+        ::= { snX400TcpIp 6 }	
+	
+snX400Dcp OBJECT-TYPE
+        SYNTAX INTEGER {
+	      enabled (1),
+          disabled(2)
+        }
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "The value enabled(1) will automatically run DCP (Detection & Configuration Protocoll).
+                The value disabled(2) will inhibit DCP."
+        DEFVAL { enabled }
+        ::= { snX400TcpIp 8 }
+
+snX400MacAddressBase OBJECT-TYPE
+        SYNTAX MacAddress
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "MAC address base of the SCALANCEX400."
+        ::= { snX400TcpIp 10 }
+        
+snX400OutbandPortIpAddress OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Outband Port IP address of the agent."
+        DEFVAL  { 0 }
+        ::= { snX400TcpIp 21 }
+
+snX400OutbandPortIpSubnetMask OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Outband Port IP subnet mask of the agent."
+        DEFVAL  { 0 }
+        ::= { snX400TcpIp 22 }        
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX400 COMMON CPLUG MIB
+-- --------------------------------------------------------------
+snX400CPlugStatus OBJECT-TYPE
+        SYNTAX INTEGER {
+          accepted(1),
+          not-present(2),
+          not-accepted(3),
+          not-accepted-crc-error(4),
+          not-accepted-group-error(5),
+          not-accepted-type-error(6),
+          not-accepted-version-error(7),
+          not-accepted-fstype-error(8),
+          not-accepted-config-error(9)
+        }
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Current status of the C-PLUG: 
+                accepted(1) C-PLUG is completely accepted (and used) by this device.
+                not-present(2) C-PLUG is (physically) not present.
+                not-accepted(3) C-PLUG is not accepted (reason unknown).
+          	    not-accepted-crc-error(4) C-PLUG is not accepted, because header CRC is wrong.
+                not-accepted-group-error(5) C-PLUG is not accepted, reason: device group mis-match,   see snCPlugGroupDetected for details.
+                not-accepted-type-error(6) C-PLUG is not accepted, reason: device type mismatch, see snCPlugDeviceDetected for details.
+                not-accepted-version-error(7) C-PLUG is not accepted, wrong configuration revision, see snCPlugConfigRevision for details.
+                not-accepted-fstype-error(8) C-PLUG is not accepted, reason: wrong flash file sytem,  see snCPlugFilesysType for details.
+                not-accepted-config-error(9) C-PLUG is not accepted, because unable to load
+                configuration."
+        ::= { snX400CPlug 1 }
+
+snX400CPlugGroupDetected OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..32))
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Device group that is currently read from C-PLUG: 
+                'EMPTY' detect a cleaned or a new C-PLUG.
+                'SCALANCE X-400'  detect a C-PLUG that is formatted for X-400 series.
+                'SCALANCE X-200'  detect a C-PLUG that is formatted for X-200 series.
+                'SCALANCE W-700' detect a C-PLUG that is formatted for W-700series.
+                'SCALANCE S-600'  detect a C-PLUG that is formatted for S-600 series.
+                'CP300' detect a C-PLUG that is formatted for CP300 series.
+                'CP400' detect a C-PLUG that is formatted for CP400 series.
+                'IE/PB-Link'  detect a C-PLUG that is formatted for IE/PB-Link series.
+                'IE/ASi-Link' detect a C-PLUG that is formatted for IE/ASi-Link series.
+                'SINAUT' detect a C-PLUG that is formatted for SIMAUT series.
+                'UNKNOWN' detect a C-PLUG with an unknown (could be too new) device group.
+                'ERROR' detect a C-PLUG with an invalid device group value."
+        ::= { snX400CPlug 2 }
+      
+snX400CPlugDeviceDetected OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..32))
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Device type that is currently read from the C-PLUG:
+	            this value Depends on the device group, and could be (for example):
+	            'SCALANCE X414-3E'
+	            'SCALANCE X408-2'
+	            'SCALANCE X208'
+	            ...
+	            'SCALANCE W788-1PRO'
+	            ...
+	            'CP 443-1 Advanced'
+	            ..."
+        ::= { snX400CPlug 3 }
+ 
+snX400CPlugConfigRevision OBJECT-TYPE
+        SYNTAX INTEGER 
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Device/group configuration revision found on the C-PLUG: 
+                Each device or device group has its own configuration revision value
+                to decide wether  a C-PLUG data could be accepted, has to be migrated or could not be used at all.
+				A value (0) means error, a value (255) means empty."
+        ::= { snX400CPlug 4 }
+
+snX400CPlugFilesysType OBJECT-TYPE
+        SYNTAX INTEGER {
+          tffs(1),
+          simatic-net-fs(2),
+          unknown(253),
+          error(254),
+          empty(255)	
+        }
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Type of the filesystem on the C-PLUG flash."
+      ::= { snX400CPlug 5 }
+      
+snX400CPlugFilesysSize OBJECT-TYPE
+        SYNTAX INTEGER 
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Maximum size of the filesystem on the C-PLUG flash in bytes."
+        ::= { snX400CPlug 6 }
+      
+snX400CPlugFilesysUsage OBJECT-TYPE
+        SYNTAX INTEGER 
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Current usage of the filesystem on the C-PLUG flash in bytes."
+        ::= { snX400CPlug 7 }
+      
+snX400CPlugInfoString OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..255))
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Shows the information string stored in the C-PLUG"
+        ::= { snX400CPlug 8 }
+
+snX400CPlugFormat OBJECT-TYPE
+        SYNTAX INTEGER {
+	      no-operation(1),
+	      format-int(2),
+	      format-def(3),
+	      clean(4),
+	      format-in-progress(5)		
+	    }        
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "Modify content of the C-PLUG as follows:
+                'format-int(2)' format the C-PLUG for this device and copy device internal values into
+                C-PLUG (if internal values are present). May be supported only by some devices. 
+                'format -def(3)' format the C-PLUG for this device and copy default values into C-PLUG
+                (if any default values are defined). May be supported only by some devices. Restart required.
+                'clean(4' format the C-PLUG (physically), this will result in a complete
+                empty C-PLUG (if you remove C-PLUG after next power down). "
+        ::= { snX400CPlug 9 }
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX400 COMMON TIME MIB
+-- --------------------------------------------------------------
+snX400SwitchTime OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..64))
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "Show/Set -MM/DD/YYYY hh:mm:ss- date and time of the switch."
+        ::= { snX400Time 1 }
+
+snX400LastSynchronisationTime OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..64))
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Shows the last time when the snSwitchTime was set."
+        ::= { snX400Time 2 }
+
+snX400LastSynchronisationType OBJECT-TYPE
+        SYNTAX INTEGER {
+          not-set(1),
+          manually(2),
+          by-sntp(3),
+          by-simatic-synchronal(4),
+          by-simatic-not-synchronal(5)
+        }
+        ACCESS read-only
+        STATUS mandatory
+        DESCRIPTION "Mechanism, which set the snSwitchTime at last."
+      	::= { snX400Time 3 }
+                
+snX400SNTPEnable OBJECT-TYPE
+        SYNTAX INTEGER {
+          enabled (1),
+          disabled (2)
+        }
+        ACCESS read-write
+        STATUS mandatory
+        DESCRIPTION "Enables/Disables Simple Network Time Protocol (SNTP)."
+      	DEFVAL { disabled }
+      ::= { snX400Time 4 }
+
+snX400SNTPIpAddress OBJECT-TYPE
+        SYNTAX  IpAddress
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "IP Address of the SNTP server (x.y.z.w)."
+        DEFVAL  { 0 }
+        ::= { snX400Time 5 }
+
+snX400SNTPPortNumber OBJECT-TYPE
+	    SYNTAX INTEGER 
+	    ACCESS read-write
+	    STATUS    mandatory
+	    DESCRIPTION "Port of the SNTP server host. Dafault value is 123."
+	    DEFVAL { 123 }
+	    ::= {  snX400Time 6 }
+
+snX400SNTPTimeShift OBJECT-TYPE
+        SYNTAX  INTEGER {
+          timeSNTP-minus-12h (1),
+          timeSNTP-minus-11h (2),
+          timeSNTP-minus-10h (3),
+          timeSNTP-minus-09h (4),
+          timeSNTP-minus-08h (5),
+          timeSNTP-minus-07h (6),
+          timeSNTP-minus-06h (7),
+          timeSNTP-minus-05h (8),
+          timeSNTP-minus-04h (9),
+          timeSNTP-minus-03h (10),
+          timeSNTP-minus-02h (11),
+          timeSNTP-minus-01h (12),
+          timeSNTP-plus-minus-00h (13),
+          timeSNTP-plus-01h (14),
+          timeSNTP-plus-02h (15),
+          timeSNTP-plus-03h (16),
+          timeSNTP-plus-04h (17),
+          timeSNTP-plus-05h (18),
+          timeSNTP-plus-06h (19),
+          timeSNTP-plus-07h (20),
+          timeSNTP-plus-08h (21),
+          timeSNTP-plus-09h (22),
+          timeSNTP-plus-10h (23),
+          timeSNTP-plus-11h (24),
+          timeSNTP-plus-12h (25),
+          timeSNTP-plus-13h (26)
+        }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION "Time difference between SNTP server and switch time."
+        DEFVAL { timeSNTP-plus-minus-00h }
+        ::= { snX400Time 7 }
+        
+snX400SNTPSamplingInterval OBJECT-TYPE
+	    SYNTAX INTEGER (1..1440) 
+	    ACCESS read-write
+	    STATUS    mandatory
+	    DESCRIPTION "Sampling interval of the SNTP Requests in minutes. Only if the snSNTPIpAddress is set."
+	    DEFVAL { 1 }
+	    ::= {  snX400Time 8 }               
+
+-- -------------------------------------------------------------
+-- SIMATIC NET SCALANCEX400 Product Specific Objects
+-- -------------------------------------------------------------
+snX400Switch 		  OBJECT IDENTIFIER ::= { snX400ProductSpecific 1 }
+snX400Report		  OBJECT IDENTIFIER ::= { snX400ProductSpecific 2 }
+snX400Port   		  OBJECT IDENTIFIER ::= { snX400ProductSpecific 3 }
+snX400Redundancy	  OBJECT IDENTIFIER ::= { snX400ProductSpecific 4 }
+snX400LoadLimits	  OBJECT IDENTIFIER ::= { snX400ProductSpecific 5 }
+snX400ModuleIdent	  OBJECT IDENTIFIER ::= { snX400ProductSpecific 6 }
+snX400IGMP  		  OBJECT IDENTIFIER ::= { snX400ProductSpecific 9 }
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX400 SPECIFIC SWITCH MIB
+-- --------------------------------------------------------------
+snX400SwitchAgingEnable    OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enable/Disable auto-aging functionality of the learning table."
+	    DEFVAL  {enabled}
+	    ::= { snX400Switch 3 }
+	    	    
+snX400SwitchSnifferDest OBJECT-TYPE
+	    SYNTAX  INTEGER (1..26)
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Destination port for traffic mirroring."
+	    DEFVAL { 1 }
+	    ::= { snX400Switch 10 }
+
+snX400SwitchSnifferSrc OBJECT-TYPE
+	    SYNTAX  INTEGER (1..26) 
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Source port for traffic mirroring."
+	    DEFVAL { 2 }
+	    ::= { snX400Switch 11 }
+
+snX400SwitchSnifferEnable OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enable/Disable mirroring functionality."
+	    DEFVAL { disabled }
+	    ::= { snX400Switch 12 }
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX400 SPECIFIC REPORT MIB
+-- --------------------------------------------------------------
+snX400FaultState OBJECT-TYPE
+    	SYNTAX  INTEGER {
+   	   	  noFault(1),
+      	  fault(2)
+    	}
+    	ACCESS  read-only
+    	STATUS  mandatory
+    	DESCRIPTION "Indicates SCALANCE X400 fault state
+                (state of fault LED/signaling contact)."
+    	::= { snX400Report 1 }
+
+snX400SignalledFaults OBJECT-TYPE
+    	SYNTAX  Counter 
+    	ACCESS  read-only
+    	STATUS  mandatory
+    	DESCRIPTION "Number of signalled faults."    
+    	::= { snX400Report 2 }
+    	
+snX400PowerSupply1State OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      inactive(1),
+	      active(2)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "State of power supply line 1."
+	    ::= { snX400Report 4 }
+
+snX400PowerSupply2State OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      inactive(1),
+	      active(2)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION	"State of power supply line 2."
+	    ::= { snX400Report 5 }
+
+snX400PowerSupply1Mask OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Mask of power supply line 1."
+	    DEFVAL { notChecked }
+	    ::= { snX400Report 6 }
+
+snX400PowerSupply2Mask OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Mask of power supply line 2."
+	    DEFVAL { notChecked }
+	    ::= { snX400Report 7 }
+
+-- --------------------------------------------------------------
+-- Report Event Sub-Group
+-- --------------------------------------------------------------
+snX400ReportEventTable OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX400ReportEventEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Report Event configuration table."
+	    ::= { snX400Report 90 }
+
+snX400ReportEventEntry OBJECT-TYPE
+	    SYNTAX  SnX400ReportEventEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Report Events table rows entries."
+	    INDEX   { snX400ReportEventIndex }
+	    ::= { snX400ReportEventTable 1 }
+
+SnX400ReportEventEntry ::=
+	    SEQUENCE {
+			snX400ReportEventIndex
+				INTEGER,
+	        snX400ReportEventColdWarmStart
+	            INTEGER,
+	        snX400ReportEventLinkChange
+	            INTEGER,
+	        snX400ReportEventAuthenticationFailure
+	            INTEGER,
+	        snX400ReportEventRmonAlarm
+	            INTEGER,
+	        snX400ReportEventPowerChange
+	            INTEGER,
+	        snX400ReportEventRmStateChange
+	            INTEGER,
+	        snX400ReportEventRSTP
+	            INTEGER,
+			snX400ReportEventFault
+				INTEGER
+	    }
+
+snX400ReportEventIndex OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      eMail(1),
+	      trap(2),
+		  logTable(3)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Index of columns : E-Mail = 1, Traps = 2, LogTable = 3."
+	    DEFVAL { eMail }
+	    ::= { snX400ReportEventEntry 1 }
+
+snX400ReportEventColdWarmStart OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables cold/warm start notification."
+	    DEFVAL { checked }
+	    ::= { snX400ReportEventEntry 2 }
+
+snX400ReportEventLinkChange OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables link change notification."
+	    DEFVAL { checked }
+	    ::= { snX400ReportEventEntry 3 }
+
+snX400ReportEventAuthenticationFailure OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables authentication failure notification."
+	    DEFVAL { checked }
+	    ::= { snX400ReportEventEntry 4 }
+
+snX400ReportEventRmonAlarm OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables RMON alarm notification."
+	    DEFVAL { checked }
+	    ::= { snX400ReportEventEntry 5 }
+
+snX400ReportEventPowerChange OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables power change notification."
+	    DEFVAL { checked }
+	    ::= { snX400ReportEventEntry 6 }
+
+snX400ReportEventRmStateChange OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables RM state change notification."
+	    DEFVAL { checked }
+	    ::= { snX400ReportEventEntry 7 }
+
+snX400ReportEventRSTP OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables (R)STP notification."
+		DEFVAL { checked }
+	    ::= { snX400ReportEventEntry 8 }
+	    
+snX400ReportEventFault OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Enables/Disables fault notification."
+		DEFVAL { checked }
+	    ::= { snX400ReportEventEntry 9 }
+	    
+	    
+
+-- --------------------------------------------------------------
+-- Report Digital Input Sub-Group
+-- --------------------------------------------------------------
+snX400ReportDigitalInEventTable OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX400ReportDigitalInEventEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Digital-In event configuration table."
+	    ::= { snX400Report 91 }
+
+snX400ReportDigitalInEventEntry OBJECT-TYPE
+	    SYNTAX  SnX400ReportDigitalInEventEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Digital-In events table rows entries."
+	    INDEX   { snX400ReportDigitalInIndex }
+	    ::= { snX400ReportDigitalInEventTable 1 }
+
+SnX400ReportDigitalInEventEntry ::=
+	    SEQUENCE {
+	        snX400ReportDigitalInIndex
+	            INTEGER,
+	        snX400ReportDigitalInName
+	             DisplayString,
+	        snX400ReportDigitalInMailEvent
+	            INTEGER,
+	        snX400ReportDigitalInTrapEvent
+	            INTEGER,
+	        snX400ReportDigitalInLogEvent
+	            INTEGER,
+	        snX400ReportDigitalInState
+	            INTEGER
+	    }
+
+snX400ReportDigitalInIndex OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Index of Digital-In."
+	    ::= { snX400ReportDigitalInEventEntry 1 }
+
+snX400ReportDigitalInName OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..64))
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Name of Digital-In."
+		DEFVAL { "Digital Input #X" }
+	    ::= { snX400ReportDigitalInEventEntry 2 }
+
+snX400ReportDigitalInMailEvent OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2),
+		  notSupported(3)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enables/Disables Digital-In E-Mail notification."
+	    DEFVAL {checked}
+	    ::= { snX400ReportDigitalInEventEntry 3 }
+
+snX400ReportDigitalInTrapEvent OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2),
+		  notSupported(3)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enables/Disables Digital-In Trap notification."
+	    DEFVAL { checked }
+	    ::= { snX400ReportDigitalInEventEntry 4 }
+
+snX400ReportDigitalInLogEvent OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2),
+		notSupported(3)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enables/Disables Digital-In LogTable notification."
+	    DEFVAL { checked }
+	    ::= { snX400ReportDigitalInEventEntry 5 }
+
+snX400ReportDigitalInState OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      on(1),
+	      off(2),
+		  notSupported(3)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "State of the Digital-In."
+	    ::= { snX400ReportDigitalInEventEntry 6 }
+
+-- --------------------------------------------------------------
+-- Report Fault State Sub-Group
+-- --------------------------------------------------------------
+snX400ReportFaultStateTable OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX400ReportFaultStateEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Fault state table."
+	    ::= { snX400Report 92 }
+
+snX400ReportFaultStateEntry OBJECT-TYPE
+	    SYNTAX  SnX400ReportFaultStateEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Fault state table rows entries."
+	    INDEX   { snX400ReportFaultIndex }
+	    ::= { snX400ReportFaultStateTable 1 }
+
+SnX400ReportFaultStateEntry ::=
+	    SEQUENCE {
+	        snX400ReportFaultIndex
+	            INTEGER,
+	        snX400ReportFaultState
+	            DisplayString
+	    }
+
+snX400ReportFaultIndex OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Index of fault state table."
+	    ::= { snX400ReportFaultStateEntry 1 }
+
+snX400ReportFaultState OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..255))
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Fault state."
+		::= { snX400ReportFaultStateEntry 2 }
+	        	                                                               
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX400 SPECIFIC PORT MIB
+-- --------------------------------------------------------------
+-- --------------------------------------------------------------
+-- PortTable Sub-Group
+-- -------------------------------------------------------------- 
+snX400PortTable OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX400PortEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION	"Table containing per-port objects in the form of private
+	            extensions of interface objects."
+	    ::= { snX400Port 90 }
+
+snX400PortEntry OBJECT-TYPE
+	    SYNTAX  SnX400PortEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Interface entry containing objects at the
+	            subnetwork layer and below for a particular
+	            interface."
+	    INDEX   { snX400PortIndex }
+	    ::= { snX400PortTable 1 }
+
+SnX400PortEntry ::=
+    SEQUENCE {
+        snX400PortIndex
+            INTEGER,
+        snX400PortFaultMaskState
+            INTEGER,
+        snX400PortLockState
+            INTEGER,
+        snX400PortBackPressure
+            INTEGER
+              }
+
+snX400PortIndex OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION	"Unique number for each interface. The number is in the range
+	            1 to 26. The number for each interface must remain
+	            constant at least from one re-initialization of the entity's
+	            network management system to the next re-initialization."
+	    ::= { snX400PortEntry 1 }
+
+snX400PortFaultMaskState OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      checked(1),
+	      notChecked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Mask for checking link state of the port.
+	            If a link of a masked (checked) port is down then
+	            a fault will be generated."
+	    DEFVAL { notChecked }
+	    ::= { snX400PortEntry 2 }
+	    
+snX400PortLockState OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      unlocked(1),        
+	      locked(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory    
+	    DESCRIPTION "Lock state of the port."
+	    DEFVAL { unlocked }
+	    ::= { snX400PortEntry 3 }
+	    
+snX400PortBackPressure OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION	"Back pressure mode for the half-duplex port."
+	    DEFVAL { disabled }
+	    ::= { snX400PortEntry 5 } 
+
+          
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX400 SPECIFIC REDUNDANCY MIB
+-- --------------------------------------------------------------
+snX400RingRedundancyMode OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      ringRedundancyOff(1),
+	      ringRedundancyOn(2)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Ring Redundancy Mode."
+	    ::= { snX400Redundancy 1 }
+	    
+snX400RmMode OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      rmOff(1),
+	      rmOn(2)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "RM mode."
+	    ::= { snX400Redundancy 2 }
+
+snX400RmState OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      rmPassive(1),
+	      rmActive(2)
+	    }
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "RM State."
+	    ::= { snX400Redundancy 3 }
+
+snX400RmStateChanges OBJECT-TYPE
+	    SYNTAX  Counter
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Number of changes to RM active state."
+	    ::= { snX400Redundancy 4 }
+    
+snX400StaticPort OBJECT-TYPE
+	    SYNTAX  INTEGER (1..26)
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Portnumber of static port."
+	    ::= { snX400Redundancy 5 }
+
+snX400IsolatedPort OBJECT-TYPE
+	    SYNTAX  INTEGER (1..26)
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Portnumber of isolated port."
+	    ::= { snX400Redundancy 6 }
+  
+snX400TestMaxDelay   OBJECT-TYPE
+	    SYNTAX  INTEGER (0..200)
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION	"Measured maximum delay of RM test telegrams."
+	    ::= { snX400Redundancy 7 }
+
+snX400ResetRedundancyCounters OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      no-operation(1),
+	      reset(2)
+	    }
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Reset all counters of Redundancy protocol software."
+	    ::= { snX400Redundancy 8 }	    	                 
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX400 SPECIFIC MODUL IDENT MIB
+-- --------------------------------------------------------------
+
+snX400ModuleIdentChangeCounter OBJECT-TYPE
+		SYNTAX INTEGER
+		ACCESS read-only
+		STATUS  mandatory
+		DESCRIPTION "Counter for every change in the module identification table"
+		::= { snX400ModuleIdent 1 } 
+		
+-- --------------------------------------------------------------
+-- Modul Ident Table Sub-Group
+-- --------------------------------------------------------------
+snX400ModuleIdentTable OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX400ModuleIdentEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Modul identification table."
+	    ::= { snX400ModuleIdent 90 }
+
+snX400ModuleIdentEntry OBJECT-TYPE
+	    SYNTAX  SnX400ModuleIdentEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Modul identification rows entries."
+	    INDEX   { snX400ModuleIdentIndex }
+	    ::= { snX400ModuleIdentTable 1 }
+
+SnX400ModuleIdentEntry ::=
+	    SEQUENCE {
+	        snX400ModuleIdentIndex
+	            INTEGER,
+	        snX400ModuleIdentName
+	            DisplayString,
+	        snX400ModuleIdentMLFB
+	            DisplayString,
+	        snX400ModuleIdentHWVersion
+	            DisplayString,
+	        snX400ModuleIdentState
+	            INTEGER,
+	        snX400ModuleIdentFirstInterface
+	            INTEGER,
+	        snX400ModuleIdentLastInterface
+	            INTEGER,
+	        snX400ModuleIdentModuleType
+	            DisplayString,
+	        snX400ModuleIdentInterfaceType
+	            DisplayString            
+	    }
+
+snX400ModuleIdentIndex OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Index of modul identification table."
+	    ::= { snX400ModuleIdentEntry 1 }
+
+snX400ModuleIdentName OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..255))
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Name of the module."
+		 ::= { snX400ModuleIdentEntry 2 }
+
+snX400ModuleIdentMLFB OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..255))
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "MLFB Number of the module."
+		 ::= { snX400ModuleIdentEntry 3 }
+		 
+snX400ModuleIdentHWVersion OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..255))
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Hardware version of the module."
+		 ::= { snX400ModuleIdentEntry 4 }		 		 
+
+snX400ModuleIdentState OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      empty(1),
+	      valid(2),
+	      invalid(3)
+		}
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "State of module slot. empty(1)- no module in slot. valid(2) - module
+	            in slot and no error. invalid(3)- wrong module in slot."
+	    ::= { snX400ModuleIdentEntry 5 }
+	    
+snX400ModuleIdentFirstInterface OBJECT-TYPE
+	    SYNTAX  INTEGER 
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "First interfacenumber of module."
+	    ::= { snX400ModuleIdentEntry 6 }
+	    
+snX400ModuleIdentLastInterface OBJECT-TYPE
+	    SYNTAX  INTEGER 
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Last interfacenumber of module."
+	    ::= { snX400ModuleIdentEntry 7 }	    	    
+
+snX400ModuleIdentModuleType OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..255))
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Moduletype."
+		 ::= { snX400ModuleIdentEntry 8 }
+
+snX400ModuleIdentInterfaceType OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..255))
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Interfacetype."
+		 ::= { snX400ModuleIdentEntry 9 }
+	    
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX400 SPECIFIC LOAD LIMITS MIB
+-- --------------------------------------------------------------
+-- --------------------------------------------------------------
+-- Ingress throttling Sub-Group
+-- --------------------------------------------------------------
+snX400LoadLimitsIngressThrottlingTable OBJECT-TYPE
+	    SYNTAX  SEQUENCE OF SnX400LoadLimitsIngressThrottlingEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Ingress trottling table."
+	    ::= { snX400LoadLimits 90 }
+
+snX400LoadLimitsIngressThrottlingEntry OBJECT-TYPE
+	    SYNTAX  SnX400LoadLimitsIngressThrottlingEntry
+	    ACCESS  not-accessible
+	    STATUS  mandatory
+	    DESCRIPTION "Ingress trottling table rows entries."
+	    INDEX   { snX400LoadLimitsIngressThrottlingBlockIndex }
+	    ::= { snX400LoadLimitsIngressThrottlingTable 1 }
+
+SnX400LoadLimitsIngressThrottlingEntry ::=
+	    SEQUENCE {
+	        snX400LoadLimitsIngressThrottlingBlockIndex
+	            INTEGER,
+	        snX400LoadLimitsIngressThrottlingBlockName
+	            DisplayString,
+	        snX400LoadLimitsIngressThrottlingBlockBroadcast
+	            INTEGER,
+	        snX400LoadLimitsIngressThrottlingBlockMulticast
+	            INTEGER,
+	        snX400LoadLimitsIngressThrottlingBlockDLF
+	            INTEGER,
+	        snX400LoadLimitsIngressThrottlingBlockRateLimit
+	            INTEGER
+	    }
+
+snX400LoadLimitsIngressThrottlingBlockIndex OBJECT-TYPE
+	    SYNTAX  INTEGER
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Index of ingress throttling block."
+	    ::= { snX400LoadLimitsIngressThrottlingEntry 1 }
+
+snX400LoadLimitsIngressThrottlingBlockName OBJECT-TYPE
+	    SYNTAX  DisplayString  (SIZE(0..64))
+	    ACCESS  read-only
+	    STATUS  mandatory
+	    DESCRIPTION "Name of ingress throttling block."
+		 ::= { snX400LoadLimitsIngressThrottlingEntry 2 }
+
+snX400LoadLimitsIngressThrottlingBlockBroadcast OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2)
+		}
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enables/Disables block ingress broadcast throttling."
+	    DEFVAL {disabled}
+	    ::= { snX400LoadLimitsIngressThrottlingEntry 3 }
+
+snX400LoadLimitsIngressThrottlingBlockMulticast OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2)
+		}
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enables/Disables block ingress multicast throttling."
+	    DEFVAL { disabled }
+	    ::= { snX400LoadLimitsIngressThrottlingEntry 4 }
+
+snX400LoadLimitsIngressThrottlingBlockDLF OBJECT-TYPE
+	    SYNTAX  INTEGER {
+	      enabled(1),
+	      disabled(2)
+		}
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Enables/Disables block ingress DLF 
+	            (Destination Lookup Failure) throttling."
+	    DEFVAL { disabled }
+	    ::= { snX400LoadLimitsIngressThrottlingEntry 5 }
+
+snX400LoadLimitsIngressThrottlingBlockRateLimit OBJECT-TYPE
+	    SYNTAX  INTEGER (1..262143)
+	    ACCESS  read-write
+	    STATUS  mandatory
+	    DESCRIPTION "Rate in units of packets per second per port."
+	    DEFVAL { 262143 }
+	    ::= { snX400LoadLimitsIngressThrottlingEntry 6 }
+
+-- --------------------------------------------------------------
+-- AD SIMATIC NET SCALANCEX400 SPECIFIC IGMP MIB
+-- --------------------------------------------------------------
+-- removed for SNMP OPC Server
+-- ----------------------------------------------------------------------
+-- LastObject in SN SCALANCEX400 PRIVATE MIB
+-- ----------------------------------------------------------------------
+snX400LastObject     OBJECT-TYPE
+        SYNTAX INTEGER {
+          last-object(1)
+        }
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION "This object is defined as a dummy object. The object
+                is used to indicate that no other objects can appear
+                after it in this private MIB.
+                The only purpose of this object is for MIB browsers
+                that need a valid object at the end of a private MIB."
+        DEFVAL { last-object }
+        ::= { iScalanceX400Mib 999 }
+
+-- --------------------------------------------------------------    
+-- SNMPv1 Traps for use by Scalance X400
+-- --------------------------------------------------------------
+    snTrapX400RmActiveState TRAP-TYPE
+        ENTERPRISE  iScalanceX400
+        DESCRIPTION
+            "Redundancy manager entered active state."
+    ::= 11
+
+    snTrapX400RmPassiveState TRAP-TYPE
+        ENTERPRISE  iScalanceX400
+        DESCRIPTION
+            "Redundancy manager entered passive state."
+    ::= 12
+
+    snTrapX400PowerLine1Down TRAP-TYPE
+        ENTERPRISE  iScalanceX400
+        DESCRIPTION
+            "Power down on line L1."
+    ::= 31
+
+    snTrapX400PowerLine1Up TRAP-TYPE
+        ENTERPRISE  iScalanceX400
+        DESCRIPTION
+            "Power up on line L1."
+    ::= 32
+    
+    snTrapX400PowerLine2Down TRAP-TYPE
+        ENTERPRISE  iScalanceX400
+        DESCRIPTION
+            "Power down on line L2."
+    ::= 33
+
+    snTrapX400PowerLine2Up TRAP-TYPE
+        ENTERPRISE  iScalanceX400
+        DESCRIPTION
+            "Power up on line L2."
+    ::= 34
+
+    snTrapX400ChangedFaultSate TRAP-TYPE
+        ENTERPRISE  iScalanceX400
+        DESCRIPTION
+            "Device changed fault state."
+    ::= 41
+
+    snTrapX400DigitalInput TRAP-TYPE
+        ENTERPRISE  iScalanceX400
+        VARIABLES { snX400ReportDigitalInState }
+        DESCRIPTION
+            "Digital Input state changed."
+    ::= 51      
+
+END
+
