@@ -91,11 +91,8 @@ class SnmpTarget(BaseTarget):
 
     def _create_get_request(self, my_oid):
         get_payload = IP(dst=self._target) / UDP(sport=161, dport=161) / SNMP(
-            version=self._version,
-            community=self._community,
-            PDU=SNMPnext(
-                varbindlist=[SNMPvarbind(
-                    oid=ASN1_OID(my_oid), value='')]))
+            version=self._version, community=self._community,
+            PDU=SNMPnext(varbindlist=[SNMPvarbind(oid=ASN1_OID(my_oid))]))
         return get_payload
 
     def _create_set_request(self, varbindlist):
@@ -110,7 +107,7 @@ class SnmpTarget(BaseTarget):
         get_payload = copy.deepcopy(packet)
         get_payload[SNMP].PDU = SNMPget(
             varbindlist=[SNMPvarbind(
-                oid=my_oid, value='')])
+                oid=my_oid)])
         # fix the packet
         del (get_payload[IP].chksum)
         del (get_payload[IP].len)
@@ -124,7 +121,7 @@ class SnmpTarget(BaseTarget):
         get_next_payload = copy.deepcopy(packet)
         get_next_payload[SNMP].PDU = SNMPnext(
             varbindlist=[SNMPvarbind(
-                oid=my_oid, value='')])
+                oid=my_oid)])
         # fix the packet
         del (get_next_payload[IP].chksum)
         del (get_next_payload[IP].len)
@@ -262,6 +259,8 @@ class SnmpTarget(BaseTarget):
             self._oid_writeable_list_file.write('\r')
 
         wrpcap(self._snmp_set_packets_file, self.set_packets)
+        self._oid_writeable_list_file.close()
+        self._oid_list_file.close()
 
     def save_fuzz_result(self):
         wrpcap(self._snmp_sent_packets_file, self._sent_packets)
