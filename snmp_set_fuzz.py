@@ -6,7 +6,7 @@ from Base import BaseTarget
 # loading mibs
 load_mib("mibs/*")
 
-snmp_error_id = [2, 3, 5, 6, 17, 10, 12, 14]
+snmp_error_id = [2, 3, 4, 5, 6, 17, 10, 12, 14]
 
 ASN1_Type = {
     0: [scapy.asn1.asn1.ASN1_IPADDRESS, RandIP()],
@@ -162,7 +162,7 @@ class SnmpTarget(BaseTarget):
                     break
             except Exception as e:
                 self.logger.error(e)
-                pass
+                break
             else:
                 self._oid = get_rsp_payload[SNMP].PDU[SNMPvarbind].oid.val
                 self.logger.info('Found oid :%s' % self._oid)
@@ -358,11 +358,13 @@ class SnmpTarget(BaseTarget):
                             return
                     else:
                         self._save_sent_packet(get_rsp)
-                        if get_rsp[SNMP].PDU.error.val != 0:
-                            self.logger.info(
-                                "Get failed with error code %s in packet NO.%s,TestCase No.%s"
-                                % (self._get_errror_code(get_rsp[
-                                    SNMP].PDU.error.val), i, test_case))
+                        if get_rsp.haslayer(SNMP):
+                            if get_rsp[SNMP].PDU.error.val != 0:
+                                self.logger.info(
+                                    "Get failed with error code %s in packet NO.%s,TestCase No.%s"
+                                    % (self._get_errror_code(get_rsp[
+                                        SNMP].PDU.error.val), i, test_case))
+
                     # send get_next packet
                     get_next_payload = copy.deepcopy(self.set_packets[
                         test_case])
@@ -387,11 +389,12 @@ class SnmpTarget(BaseTarget):
                             return
                     else:
                         self._save_sent_packet(get_next_rsp)
-                        if get_next_rsp[SNMP].PDU.error.val != 0:
-                            self.logger.info(
-                                "Get_next failed with error code %s in packet NO.%s,TestCase No.%s"
-                                % (self._get_errror_code(get_next_rsp[
-                                    SNMP].PDU.error.val), i, test_case))
+                        if get_rsp.haslayer(SNMP):
+                            if get_next_rsp[SNMP].PDU.error.val != 0:
+                                self.logger.info(
+                                    "Get_next failed with error code %s in packet NO.%s,TestCase No.%s"
+                                    % (self._get_errror_code(get_next_rsp[SNMP].PDU.error.val), i, test_case))
+
             except KeyboardInterrupt:
                 self.save_fuzz_result()
                 time.sleep(1)
